@@ -2,8 +2,6 @@
 \usepackage[utf8]{inputenc}
 \usepackage[T1]{fontenc}
 \usepackage[french]{babel}
-\usepackage{amsfonts}
-\usepackage{amssymb}
 \usepackage{amscd}
 \usepackage{amsthm}
 \usepackage{physics}
@@ -24,7 +22,7 @@
 \usepackage{dsfont}% indicatrice : \mathds{1}
 
 % -------------------------- Mathematics ---------------------------------------
-\usepackage{mathrsfs, amsmath}
+\usepackage{mathrsfs, amsmath, amsfonts, amssymb}
 \usepackage{bm}
 \newcommand{\R}{\mathbb{R}} % For Real space
 % ------------------------------------------------------------------------------
@@ -59,9 +57,9 @@
 % \graphicspath{{../images/}}
 
 \usepackage{array,tabularx}
-\newcolumntype{L}[1]{>{\raggedright\let\newline\\\arraybackslash\hspace{0pt}}m{#1}}
-\newcolumntype{C}[1]{>{\centering\let\newline\\\arraybackslash\hspace{0pt}}m{#1}}
-\newcolumntype{R}[1]{>{\raggedleft\let\newline\\\arraybackslash\hspace{0pt}}m{#1}}
+% \newcolumntype{L}[1]{>{\raggedright\let\newline\\\arraybackslash\hspace{0pt}}m{#1}}
+% \newcolumntype{C}[1]{>{\centering\let\newline\\\arraybackslash\hspace{0pt}}m{#1}}
+% \newcolumntype{R}[1]{>{\raggedleft\let\newline\\\arraybackslash\hspace{0pt}}m{#1}}
 
 
 % ------------------------------ TITLE -----------------------------------------
@@ -99,25 +97,47 @@ Etant donné que \(z\) et \(x\) sont des variables à valeurs discrètes prenant
 	p(x = k | z = m) = p(X_k = 1 | Z_m = 1) = \theta_{mk}
 \]
 En supposant que l'on ait un échantillon de \(n\) observations de \((x, z)\), on peut exprimer la probabilité jointe d'une obersvation \(i\) :
-\begin{align}
-	p(x^{(i)}, z^{(i)} ; \bm{\pi}, \bm{\theta}) & = p(z^{(i)} ; \bm{\pi}) p(x^{(i)} | z^{(i)} ; \bm{\theta})      \nonumber                                        \\
-	p(x^{(i)}, z^{(i)} ; \bm{\pi}, \bm{\theta}) & = \prod_{m=1}^M \prod_{k=1}^K \theta_{mk}^{X_k^{(i)} Z_m^{(i)}} \prod_{l = 1}^M\pi_l^{Z_l^{(i)}} \label{1_joint}
-\end{align}
 
-On peut alors écrire la log-vraisemblance de l'échantillon dans le modèle \(( \bm{\pi}, \bm{\theta})\), composé d'observations i.i.d., en utilisant \ref{1_joint}:
-\begin{align}
-	\ell( \bm{\pi}, \bm{\theta}) & = \sum_{i = 1}^n \ln(p(x^{(i)}, z^{(i)} ; \bm{\pi}, \bm{\theta})) \nonumber                                                                                            \\
-	                             & = \sum_{i = 1}^n\left(\ln\left(\prod_{m=1}^M \prod_{k=1}^K \theta_{mk}^{X_k^{(i)} Z_m^{(i)}} \prod_{l = 1}^M\pi_l^{Z_l^{(i)}}\right)\right)\nonumber                   \\
-	                             & = \sum_{i = 1}^n\left(\sum_{m=1}^M \sum_{k=1}^K \ln(\theta_{mk}^{X_k^{(i)} Z_m^{(i)}}) + \sum_{l = 1}^M\ln(\pi_l^{Z_l^{(i)}})\right)\nonumber                          \\
-	                             & = \sum_{i = 1}^n\left(\sum_{m=1}^M \sum_{k=1}^K X_k^{(i)} Z_m^{(i)}\ln(\theta_{mk}) + \sum_{l = 1}^M {Z_l^{(i)}}\ln(\pi_l)\right)\nonumber                             \\
-	                             & = \sum_{m=1}^M \sum_{k=1}^K \left(\sum_{i = 1}^n X_k^{(i)} Z_m^{(i)}\right)\ln(\theta_{mk}) + \sum_{l = 1}^M\left(\sum_{i = 1}^n {Z_l^{(i)}}\right)\ln(\pi_l)\nonumber \\
-	                             & = \sum_{m=1}^M \sum_{k=1}^K \alpha_{mk}\ln(\theta_{mk}) + \sum_{l = 1}^M \beta_l\ln(\pi_l)
-\end{align}
+\begin{equation}
+	\begin{split}
+		p(x^{(i)}, z^{(i)} ; \bm{\pi}, \bm{\theta}) & = p(z^{(i)} ; \bm{\pi}) p(x^{(i)} | z^{(i)} ; \bm{\theta})                                          \\
+		p(x^{(i)}, z^{(i)} ; \bm{\pi}, \bm{\theta}) & = \prod_{m=1}^M \prod_{k=1}^K \theta_{mk}^{X_k^{(i)} Z_m^{(i)}} \prod_{l = 1}^M\pi_l^{Z_l^{(i)}}
+	\end{split}
+	\label{1_joint}
+\end{equation}
+
+On peut alors écrire la log-vraisemblance de l'échantillon dans le modèle \(( \bm{\pi}, \bm{\theta})\), composé d'observations i.i.d., en utilisant~\eqref{1_joint}:
+
+\begin{equation}
+	\begin{split}
+		\ell( \bm{\pi}, \bm{\theta}) & = \sum_{i = 1}^n \ln(p(x^{(i)}, z^{(i)} ; \bm{\pi}, \bm{\theta}))                                                                        \\
+		& = \sum_{i = 1}^n\left(\ln\left(\prod_{m=1}^M \prod_{k=1}^K \theta_{mk}^{X_k^{(i)} Z_m^{(i)}} \prod_{l = 1}^M\pi_l^{Z_l^{(i)}}\right)\right)                   \\
+		& = \sum_{i = 1}^n\left(\sum_{m=1}^M \sum_{k=1}^K \ln(\theta_{mk}^{X_k^{(i)} Z_m^{(i)}}) + \sum_{l = 1}^M\ln(\pi_l^{Z_l^{(i)}})\right)                          \\
+		& = \sum_{i = 1}^n\left(\sum_{m=1}^M \sum_{k=1}^K X_k^{(i)} Z_m^{(i)}\ln(\theta_{mk}) + \sum_{l = 1}^M {Z_l^{(i)}}\ln(\pi_l)\right)                             \\
+		& = \sum_{m=1}^M \sum_{k=1}^K \left(\sum_{i = 1}^n X_k^{(i)} Z_m^{(i)}\right)\ln(\theta_{mk}) + \sum_{l = 1}^M\left(\sum_{i = 1}^n {Z_l^{(i)}}\right)\ln(\pi_l) \\
+		& = \sum_{m=1}^M \sum_{k=1}^K \alpha_{mk}\ln(\theta_{mk}) + \sum_{l = 1}^M \beta_l\ln(\pi_l)
+	\end{split}
+	\label{1_logl}
+\end{equation}
 
 avec
 \begin{align*}
 	\alpha_{mk} & = \left(\sum_{i = 1}^n X_k^{(i)} Z_m^{(i)}\right) \\
 	\beta_l     & = \left(\sum_{i = 1}^n {Z_l^{(i)}}\right)
 \end{align*}
+
+D'après~\eqref{1_logl}, la log-vraisemblance est donc concave en chaque composantes de \(\bm{\pi}\) et \(\bm{\theta}\), par combinaison linéaire de logarithmes. D'autre part, on a les contraintes linéaires suivantes :
+\begin{equation}
+	\begin{split}
+		\sum_{m = 1}^M \pi_m - 1 &= 0\\
+		\sum_{k = 1}^K \theta_{mk} - 1 &= 0 \,,  \forall m : 1..M
+	\end{split}
+\end{equation}
+
+On peut donc écrire le Lagrangien, en utilisant les multiplicateurs de Lagrange correspondants, associé au problème de maximisation de la log-vraisemblance~\eqref{1_logl},  :
+
+\begin{equation}
+	\mathcal{L}(\bm{\pi}, \bm{\theta}, \lambda, \bm{\gamma}) = \sum_{m=1}^M \sum_{k=1}^K \alpha_{mk}\ln(\theta_{mk}) + \sum_{l = 1}^M \beta_l\ln(\pi_l) - \lambda\left(\sum_{m = 1}^K \pi_m - 1\right)
+\end{equation}
 
 \end{document}
