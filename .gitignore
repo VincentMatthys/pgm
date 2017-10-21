@@ -6,16 +6,13 @@
 *.exe
 *.o
 *.so
+*.out
 
 # Temporary files #
 ###################
 *.swp
 *.swo
 *~
-
-# Jupyter save
-###################
-ipynb_checkpoints/*
 
 # Packages #
 ############

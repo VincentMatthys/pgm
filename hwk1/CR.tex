@@ -1,0 +1,123 @@
+\documentclass[12pt,a4paper,onecolumn]{article}
+\usepackage[utf8]{inputenc}
+\usepackage[T1]{fontenc}
+\usepackage[french]{babel}
+\usepackage{amsfonts}
+\usepackage{amssymb}
+\usepackage{amscd}
+\usepackage{amsthm}
+\usepackage{physics}
+\usepackage[left=2.2cm,right=2.2cm,top=2cm,bottom=2cm]{geometry}
+\usepackage{textcomp,gensymb} %pour le °C, et textcomp pour éviter les warning
+\usepackage{graphicx} %pour les images
+\usepackage{caption}
+\usepackage{subcaption}
+\usepackage[colorlinks=true,
+	breaklinks=true,
+	citecolor=blue,
+	linkcolor=blue,
+	urlcolor=blue]{hyperref} % pour insérer des liens
+\usepackage{epstopdf} %converting to PDF
+\usepackage[export]{adjustbox} %for large figures
+
+\usepackage{array}
+\usepackage{dsfont}% indicatrice : \mathds{1}
+
+% -------------------------- Mathematics ---------------------------------------
+\usepackage{mathrsfs, amsmath}
+\usepackage{bm}
+\newcommand{\R}{\mathbb{R}} % For Real space
+% ------------------------------------------------------------------------------
+
+
+% -------------------------- Code format ---------------------------------------
+\usepackage[numbered,framed]{matlab-prettifier}
+\lstset{
+	style              = Matlab-editor,
+	basicstyle         = \mlttfamily,
+	escapechar         = '',
+	mlshowsectionrules = true,
+}
+% ------------------------------------------------------------------------------
+
+% ------------------------- Blbiographie --------------------------------------
+% \usepackage[backend=biber, style=science]{biblatex}
+% \addbibresource{biblio.bib}
+% ------------------------------------------------------------------------------
+
+% ------------------------- Color table ----------------------------------------
+\usepackage{multirow}
+% \usepackage[table]{xcolor}
+% \definecolor{maroon}{cmyk}{0,0.87,0.68,0.32}/
+% ------------------------------------------------------------------------------
+
+\setcounter{tocdepth}{4} %Count paragraph
+\setcounter{secnumdepth}{4} %Count paragraph
+\usepackage{float}
+
+\usepackage{graphicx} % for graphicspath
+% \graphicspath{{../images/}}
+
+\usepackage{array,tabularx}
+\newcolumntype{L}[1]{>{\raggedright\let\newline\\\arraybackslash\hspace{0pt}}m{#1}}
+\newcolumntype{C}[1]{>{\centering\let\newline\\\arraybackslash\hspace{0pt}}m{#1}}
+\newcolumntype{R}[1]{>{\raggedleft\let\newline\\\arraybackslash\hspace{0pt}}m{#1}}
+
+
+% ------------------------------ TITLE -----------------------------------------
+\title{Math M2 Probabilistic graphical models 2017/2018}
+\author{Vincent Matthys}
+% ------------------------------------------------------------------------------
+
+\renewcommand{\thesubsection}{\alph{subsection}}
+
+
+\begin{document}
+\begin{tabularx}{0.8\textwidth}{@{} l X r @{} }
+	{\textsc{Master MVA}}                   &  & \textsc{Homework 1} \\
+	\textsc{Probabilistic graphical models} &  & {Vincent Matthys}   \\
+\end{tabularx}
+\vspace{1.5cm}
+\begin{center}
+	\rule[11pt]{5cm}{0.5pt}
+
+	\textbf{\LARGE \textsc{Compte-rendu du devoir 1}}
+	\vspace{0.5cm}\\
+	Vincent Matthys\\
+	\rule{5cm}{0.5pt}
+	\vspace{1.5cm}
+\end{center}
+
+\section{Leaning in discrete graphical models}
+
+Etant donné que \(z\) et \(x\) sont des variables à valeurs discrètes prenant respectivement \(M\) et \(K\) valeurs, on peut procéder au \textit{one hot encoding}, notant respectivement \(\bm{Z}\) et \(\bm{X}\) leur encodage sur, respectivement \(\R^M\) et \(\R^K\). Ainsi, on peut écrire :
+
+\[
+	p(z = m) = P(Z_m = 1) = \pi_m
+\]
+\[
+	p(x = k | z = m) = p(X_k = 1 | Z_m = 1) = \theta_{mk}
+\]
+En supposant que l'on ait un échantillon de \(n\) observations de \((x, z)\), on peut exprimer la probabilité jointe d'une obersvation \(i\) :
+\begin{align}
+	p(x^{(i)}, z^{(i)} ; \bm{\pi}, \bm{\theta}) & = p(z^{(i)} ; \bm{\pi}) p(x^{(i)} | z^{(i)} ; \bm{\theta})      \nonumber                                        \\
+	p(x^{(i)}, z^{(i)} ; \bm{\pi}, \bm{\theta}) & = \prod_{m=1}^M \prod_{k=1}^K \theta_{mk}^{X_k^{(i)} Z_m^{(i)}} \prod_{l = 1}^M\pi_l^{Z_l^{(i)}} \label{1_joint}
+\end{align}
+
+On peut alors écrire la log-vraisemblance de l'échantillon dans le modèle \(( \bm{\pi}, \bm{\theta})\), composé d'observations i.i.d., en utilisant \ref{1_joint}:
+\begin{align}
+	\ell( \bm{\pi}, \bm{\theta}) & = \sum_{i = 1}^n \ln(p(x^{(i)}, z^{(i)} ; \bm{\pi}, \bm{\theta})) \nonumber                                                                                            \\
+	                             & = \sum_{i = 1}^n\left(\ln\left(\prod_{m=1}^M \prod_{k=1}^K \theta_{mk}^{X_k^{(i)} Z_m^{(i)}} \prod_{l = 1}^M\pi_l^{Z_l^{(i)}}\right)\right)\nonumber                   \\
+	                             & = \sum_{i = 1}^n\left(\sum_{m=1}^M \sum_{k=1}^K \ln(\theta_{mk}^{X_k^{(i)} Z_m^{(i)}}) + \sum_{l = 1}^M\ln(\pi_l^{Z_l^{(i)}})\right)\nonumber                          \\
+	                             & = \sum_{i = 1}^n\left(\sum_{m=1}^M \sum_{k=1}^K X_k^{(i)} Z_m^{(i)}\ln(\theta_{mk}) + \sum_{l = 1}^M {Z_l^{(i)}}\ln(\pi_l)\right)\nonumber                             \\
+	                             & = \sum_{m=1}^M \sum_{k=1}^K \left(\sum_{i = 1}^n X_k^{(i)} Z_m^{(i)}\right)\ln(\theta_{mk}) + \sum_{l = 1}^M\left(\sum_{i = 1}^n {Z_l^{(i)}}\right)\ln(\pi_l)\nonumber \\
+	                             & = \sum_{m=1}^M \sum_{k=1}^K \alpha_{mk}\ln(\theta_{mk}) + \sum_{l = 1}^M \beta_l\ln(\pi_l)
+\end{align}
+
+avec
+\begin{align*}
+	\alpha_{mk} & = \left(\sum_{i = 1}^n X_k^{(i)} Z_m^{(i)}\right) \\
+	\beta_l     & = \left(\sum_{i = 1}^n {Z_l^{(i)}}\right)
+\end{align*}
+
+\end{document}
