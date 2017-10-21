@@ -122,11 +122,11 @@ On peut alors écrire la log-vraisemblance de l'échantillon dans le modèle \((
 
 avec
 \begin{align*}
-	\alpha_{mk} & = \left(\sum_{i = 1}^n X_k^{(i)} Z_m^{(i)}\right) \\
-	\beta_l     & = \left(\sum_{i = 1}^n {Z_l^{(i)}}\right)
+	\alpha_{mk} & = \sum_{i = 1}^n X_k^{(i)} Z_m^{(i)} \\
+	\beta_l     & = \sum_{i = 1}^n {Z_l^{(i)}}
 \end{align*}
 
-D'après~\eqref{1_logl}, la log-vraisemblance est donc concave en chaque composantes de \(\bm{\pi}\) et \(\bm{\theta}\), par combinaison linéaire de logarithmes. D'autre part, on a les contraintes linéaires suivantes :
+D'après~\eqref{1_logl}, la log-vraisemblance est donc strictement concave en chaque composantes de \(\bm{\pi}\) et \(\bm{\theta}\), par combinaison linéaire de logarithmes. D'autre part, on a les contraintes linéaires suivantes :
 \begin{equation}
 	\begin{split}
 		\sum_{m = 1}^M \pi_m - 1 &= 0\\
@@ -134,10 +134,43 @@ D'après~\eqref{1_logl}, la log-vraisemblance est donc concave en chaque composa
 	\end{split}
 \end{equation}
 
-On peut donc écrire le Lagrangien, en utilisant les multiplicateurs de Lagrange correspondants, associé au problème de maximisation de la log-vraisemblance~\eqref{1_logl},  :
+On peut donc écrire le Lagrangien, en utilisant les multiplicateurs de Lagrange correspondants, associé au problème de maximisation de la log-vraisemblance~\eqref{1_logl} :
 
 \begin{equation}
-	\mathcal{L}(\bm{\pi}, \bm{\theta}, \lambda, \bm{\gamma}) = \sum_{m=1}^M \sum_{k=1}^K \alpha_{mk}\ln(\theta_{mk}) + \sum_{l = 1}^M \beta_l\ln(\pi_l) - \lambda\left(\sum_{m = 1}^K \pi_m - 1\right)
+	\mathcal{L}(\bm{\pi}, \bm{\theta}, \lambda, \bm{\gamma}) = \sum_{m=1}^M \sum_{k=1}^K \alpha_{mk}\ln(\theta_{mk}) + \sum_{l = 1}^M \beta_l\ln(\pi_l) - \lambda\left(\sum_{m = 1}^K \pi_m - 1\right) - \bm{\gamma}^\intercal \begin{pmatrix}
+		\vdots                         \\
+		\sum_{k = 1}^K \theta_{mk} - 1 \\
+		\vdots
+	\end{pmatrix}
+	\label{1_lagrang}
+\end{equation}
+
+Le problème admet une solution unique que l'on trouve par dérivation de~\eqref{1_lagrang}
+
+\subsection{Par rapport à \protect\(\pi_m\)}
+
+\[
+	\frac{\partial \mathcal{L}(\bm{\pi}, \bm{\theta}, \lambda, \bm{\gamma})}{\partial \pi_m} = \frac{\beta_m}{\pi_m} - \lambda = 0
+	\implies \pi_m \propto \beta_m
+	\implies \pi_m = \frac{\beta_m}{\sum_{m=1}^M \beta_m}= \frac{\sum_{i = 1}^n {Z_m^{(i)}}}{\sum_{m=1}^M \sum_{i = 1}^n {Z_m^{(i)}}}
+\]
+D'où finalement :
+\begin{equation}
+	\pi_m = \frac{1}{n}\sum_{i = 1}^n {Z_m^{(i)}}
+	\label{1_pi}
+\end{equation}
+
+\subsection{Par rapport à \protect\(\theta_{mk}\)}
+
+\[
+	\frac{\partial \mathcal{L}(\bm{\pi}, \bm{\theta}, \lambda, \bm{\gamma})}{\partial \theta_{mk}} = \frac{\alpha_{mk}}{\theta_{mk}} - \gamma_m = 0 \implies \theta_{mk} \propto \alpha_{mk}
+	\implies \theta_{mk} = \frac{\alpha_{mk}}{\sum_{k = 1}^K \alpha_{mk}} = \frac{\sum_{i = 1}^n X_k^{(i)} Z_m^{(i)}}{\sum_{i = 1}^n \left(\sum_{k=1}^KX_k^{(i)}\right) Z_m^{(i)}}
+\]
+
+D'où finalement :
+
+\begin{equation}
+	\theta_{mk} = \frac{\sum_{i = 1}^n X_k^{(i)} Z_m^{(i)}}{\sum_{i = 1}^n Z_m^{(i)}}
 \end{equation}
 
 \end{document}
