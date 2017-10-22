@@ -224,11 +224,77 @@ ce qui permet de déterminer la log-vraisemblance de l'échantillon composé de 
 \end{equation}
 
 \( \ell(\Theta) \) est donc une fonction stricement concave en \( \uppi\) par stricte concavité du logarithme, en \( \mu_0 \) et \( \mu_1 \) par stricte concavité de l'opposé d'une forme quadratique (avec les valeurs propres de  \( \Sigma \) strictement positives), et en \( \Sigma \) par convextié du logdet.
-Le problème de maximisation \( \ell(\Theta) \) admet une solution unique, notée \( (\widehat{\mu_{0, MLE}}, \widehat{\mu_{1, MLE}}, \widehat{\Sigma_{MLE}}, \widehat{\uppi_{MLE}}) \) que l'on trouve par dérivation de~\eqref{2_1_logl}}.
+Le problème de maximisation \( \ell(\Theta) \) admet une solution unique, notée \( (\widehat{\mu_{0, MLE}}, \widehat{\mu_{1, MLE}}, \widehat{\Sigma_{MLE}}, \widehat{\uppi_{MLE}}) \) que l'on trouve par dérivation de~\eqref{2_1_logl}.
 
 \subsubsection{Par rapport à \protect \(\uppi \)}
 
-\subsubsection{Par rapport à \protect \(\mu_0 \)}
+\[
+	\frac{\partial \ell(\mu_0, \mu_1, \Sigma, \uppi)}{\partial \uppi} = 	\sum_{n = 1}^N\left( \frac{y_n}{\uppi} - \frac{1 - y_n}{1 - \uppi} \right) = 0
+	\implies \frac{1- \uppi}{\uppi} = \frac{\sum_{n = 1}^N (1 - y_n)}{\sum_{n = 1}^N y_n}
+	\implies \uppi = \frac{\sum_{n = 1}^N y_n}{\sum_{n = 1}^N 1}
+\]
+D'où finalement :
+\begin{equation}
+	\left(\widehat{\uppi_{MLE}}\right) = \frac{1}{N}\sum_{n = 1}^N y_n
+	\label{2_1_pi}
+\end{equation}
+qui est la moyenne empirique des classes observées.
 
+\subsubsection{Par rapport à \protect \(\mu_0 \) et \protect \(\mu_1 \)}
+\[
+	\frac{\partial \ell(\mu_0, \mu_1, \Sigma, \uppi)}{\partial \mu_0} = 	\sum_{n = 1}^N\left((1 - y_n)(- \Sigma^{-1}(x_n - \mu_0)) \right) = 0
+	\implies \mu_0 = \frac{\sum_{n = 1}^N (1 - y_n)x_n}{\sum_{n = 1}^N (1 - y_n)}
+\]
+En introduisant \( A = \sum_{n = 1}^N y_n\), on a donc :
+\begin{equation}
+	\left(\widehat{\mu_{0,MLE}}\right) = \frac{1}{N - A}\sum_{y_n =\,0} x_n
+	\label{2_1_mu0}
+\end{equation}
+Et de la même façon :
+\begin{equation}
+	\left(\widehat{\mu_{1,MLE}}\right) = \frac{1}{A}\sum_{y_n =\,1} x_n
+	\label{2_1_mu1}
+\end{equation}
+
+\subsubsection{Par rapport à \protect\( \Sigma\)}
+En introduisant temporairement \( \Lambda = \Sigma^{-1}\), la log-vraisemblance se réecrit :
+
+\begin{equation}
+	\begin{split}
+		\ell(\Theta) & =  \sum_{n = 1}^N
+		\left(y_n \left(\ln
+			\uppi - \ln(2\pi) + \frac{1}{2}\ln\det\Lambda -\frac{1}{2}(x_n - \mu_1)^\intercal\Lambda(x_n - \mu_1) \right)\right)\\
+		&+ 	\sum_{n = 1}^N\left((1 - y_n)
+		\left(\ln(1 - \uppi) - \ln(2\pi) + \frac{1}{2}\ln\det\Lambda -\frac{1}{2}(x_n - \mu_0)^\intercal\Lambda(x_n - \mu_0) \right)\right)
+	\end{split}
+	\label{2_1_lambda_l}
+\end{equation}
+
+En introduisant aussi :
+\begin{equation}
+	\begin{split}
+		\widetilde \Sigma_0 &= \frac{1}{N - A}\sum_{y_n = 0} (x_n - \mu_0)^\intercal(x_n - \mu_0) \\
+		\widetilde \Sigma_1 &= \frac{1}{A}\sum_{y_n = 1} (x_n - \mu_1)^\intercal(x_n - \mu_1)
+	\end{split}
+\end{equation}
+
+On peut réecrire~\eqref{2_1_lambda_l} sous la forme suivante :
+\begin{equation}
+	\begin{split}
+		\ell(\Theta) & =  \sum_{n = 1}^N
+		\left(y_n \left(\ln
+			\uppi - \ln(2\pi) + \frac{1}{2}\ln\det\Lambda -\frac{1}{2}\tr(\widetilde \Sigma_1 \Lambda) \right)\right)\\
+		&+ 	\sum_{n = 1}^N\left((1 - y_n)
+		\left(\ln(1 - \uppi) - \ln(2\pi) + \frac{1}{2}\ln\det\Lambda -\frac{1}{2}\tr(\widetilde \Sigma_0 \Lambda) \right)\right)
+	\end{split}
+	\label{2_1_lambda_trace_l}
+\end{equation}
+
+Dérivant~\eqref{2_1_lambda_trace_l} par rapport à \( \Lambda\) :
+
+\[
+	\frac{\partial \ell(\mu_0, \mu_1, \Sigma, \uppi)}{\partial \mu_0} = 	\sum_{n = 1}^N\left((1 - y_n)(- \Sigma^{-1}(x_n - \mu_0)) \right) = 0
+	\implies \mu_0 = \frac{\sum_{n = 1}^N (1 - y_n)x_n}{\sum_{n = 1}^N (1 - y_n)}
+\]
 
 \end{document}
