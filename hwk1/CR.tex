@@ -24,6 +24,7 @@
 % -------------------------- Mathematics ---------------------------------------
 \usepackage{mathrsfs, amsmath, amsfonts, amssymb}
 \usepackage{bm}
+\usepackage[Symbol]{upgreek} % For pi \uppi different from /pi
 \newcommand{\R}{\mathbb{R}} % For Real space
 % ------------------------------------------------------------------------------
 
@@ -175,11 +176,59 @@ D'où finalement :
 	\left( \widehat{{\theta_{MLE}}} \right)_{mk} = \frac{\sum_{i = 1}^n X_k^{(i)} Z_m^{(i)}}{\sum_{i = 1}^n Z_m^{(i)}}
 \end{equation}
 
-On pourra remarquer que l'on peut s'affranchir de l'hypothèse implicite qu'aucune composante de \(\bm{\pi}\) ni de \(\bm{\theta}\) n'est nulle. En effet, si tel est le cas, alors la probabilité d'observer une telle observation est nulle.
+On remarque que si \( \sum_{i = 1}^n Z_m^{(i)} \) est nulle, alors \( \left(\widehat{{\theta_{MLE}}}\right)_{mk} \) n'est pas défini, et ce pour tout \( k\). Mais, dans de telles conditions, cela signifie que la \( m \)\up{ième} valeur de \( z \) n'a pas été observée, et donc que l'on peut réduire \( \bm{\theta} \) d'une ligne entière, puisqu'alors la probabilité d'observer une quelconque valeur de \( x\) sachant que \( z\) prend la valeur \( m\) est nulle.
+
+En définitif, on peut s'affranchir de l'hypothèse implicite qu'aucune composante de \(\bm{\pi}\) ni de \(\bm{\theta}\) n'est nulle. En effet, si tel est le cas, alors la probabilité d'observer une telle observation est nulle.
+
+\subsection{Conclusion}
+On remarque donc que l'estimateur de \(\bm{\pi}\) n'est rien d'autre que la moyenne empirique des observations de \( z\), et que l'estimateur de \(\bm{\theta}\) est également la moyenne des observations de \( x\) pour une valeur de \( z \) donnée.
 
 \section{Linear classification}
 
 \subsection{Generative model : Linear Discriminant Analysis}
+
+Supposons un échantillon de \( N \) observations de \( x, y \), notées, \( (x_n, y_n) \), pour \( n \) variant de \( 1 \) à \( N \), où \(y_n \in \{0,1\} \). Etant donné le modèle suivant :
+\begin{equation*}
+	\begin{split}
+		y &\sim Bernoulli(\uppi) \\
+		p(x | y = i) &= \frac{1}{2\pi\sqrt{\det\Sigma}}\exp\left(-\frac{1}{2}(x - \mu_i)^\intercal\Sigma^{-1}(x - \mu_i)\right)
+	\end{split}
+\end{equation*}
+paramétré par :
+\[
+	\Theta = (\mu_0, \mu_1, \Sigma, \uppi)
+\]
+on peut réecrire la probabilité d'observer \( (x_n, y_n )\) sous la forme comprenant déjà la contrainte sur \( \pi \):
+\begin{equation}
+	p(x_n, y_n) = \left(\uppi p(x_n | y_n = 1)\right)^{y_n} \left((1 - \uppi) p(x_n | y_n = 0)\right)^{1 - y_n}
+	\label{2_1_joint}
+\end{equation}
+ce qui permet de déterminer la log-vraisemblance de l'échantillon composé de \( N \) observations i.i.d dans le modèle \( \Theta \) en utilisant~\eqref{2_1_joint} :
+\begin{equation}
+	\begin{split}
+		\ell(\Theta) & =  \sum_{n = 1}^N \ln(p(x_n, y_n ; \Theta)) \\
+		\ell(\Theta) & =  \sum_{n = 1}^N \ln\left(\left(\uppi p(x_n | y_n = 1)\right)^{y_n} \left((1 - \uppi) p(x_n | y_n = 0)\right)^{1 - y_n}\right) \\
+		\ell(\Theta) & =  \sum_{n = 1}^N
+		\left(y_n \left(\ln
+			\left(\frac{\uppi}{2\pi\sqrt{\det\Sigma}}\right) -\frac{1}{2}(x_n - \mu_1)^\intercal\Sigma^{-1}(x_n - \mu_1) \right)\right)\\
+		&+ 	\sum_{n = 1}^N\left((1 - y_n)
+		\left(\ln
+		\left(\frac{1 - \uppi}{2\pi\sqrt{\det\Sigma}}\right) -\frac{1}{2}(x_n - \mu_0)^\intercal\Sigma^{-1}(x_n - \mu_0) \right)\right) \\
+		\ell(\Theta) & =  \sum_{n = 1}^N
+		\left(y_n \left(\ln
+			\uppi - \ln(2\pi) -\frac{1}{2}\ln\det\Sigma -\frac{1}{2}(x_n - \mu_1)^\intercal\Sigma^{-1}(x_n - \mu_1) \right)\right)\\
+		&+ 	\sum_{n = 1}^N\left((1 - y_n)
+		\left(\ln(1 - \uppi) - \ln(2\pi) -\frac{1}{2}\ln\det\Sigma -\frac{1}{2}(x_n - \mu_0)^\intercal\Sigma^{-1}(x_n - \mu_0) \right)\right)\\
+	\end{split}
+	\label{2_1_logl}
+\end{equation}
+
+\( \ell(\Theta) \) est donc une fonction stricement concave en \( \uppi\) par stricte concavité du logarithme, en \( \mu_0 \) et \( \mu_1 \) par stricte concavité de l'opposé d'une forme quadratique (avec les valeurs propres de  \( \Sigma \) strictement positives), et en \( \Sigma \) par convextié du logdet.
+Le problème de maximisation \( \ell(\Theta) \) admet une solution unique, notée \( (\widehat{\mu_{0, MLE}}, \widehat{\mu_{1, MLE}}, \widehat{\Sigma_{MLE}}, \widehat{\uppi_{MLE}}) \) que l'on trouve par dérivation de~\eqref{2_1_logl}}.
+
+\subsubsection{Par rapport à \protect \(\uppi \)}
+
+\subsubsection{Par rapport à \protect \(\mu_0 \)}
 
 
 \end{document}
