@@ -67,7 +67,9 @@
 \author{Vincent Matthys}
 % ------------------------------------------------------------------------------
 
-\renewcommand{\thesubsection}{\alph{subsection}}
+% ------------------------------ NUMEROTATION ----------------------------------
+% \renewcommand{\thesubsection}{\alph{subsection}}
+% ------------------------------------------------------------------------------
 
 
 \begin{document}
@@ -145,7 +147,7 @@ On peut donc écrire le Lagrangien, en utilisant les multiplicateurs de Lagrange
 	\label{1_lagrang}
 \end{equation}
 
-Le problème admet une solution unique que l'on trouve par dérivation de~\eqref{1_lagrang}
+Le problème admet une solution unique, notée \( (\bm{\widehat{\pi_{MLE}}}, \bm{\widehat{\theta_{MLE}}}) \) que l'on trouve par dérivation de~\eqref{1_lagrang}
 
 \subsection{Par rapport à \protect\(\pi_m\)}
 
@@ -156,7 +158,7 @@ Le problème admet une solution unique que l'on trouve par dérivation de~\eqref
 \]
 D'où finalement :
 \begin{equation}
-	\pi_m = \frac{1}{n}\sum_{i = 1}^n {Z_m^{(i)}}
+	\left(\widehat{\pi_{MLE}}\right)_m = \frac{1}{n} \sum_{i = 1}^n {Z_m^{(i)}}
 	\label{1_pi}
 \end{equation}
 
@@ -164,13 +166,20 @@ D'où finalement :
 
 \[
 	\frac{\partial \mathcal{L}(\bm{\pi}, \bm{\theta}, \lambda, \bm{\gamma})}{\partial \theta_{mk}} = \frac{\alpha_{mk}}{\theta_{mk}} - \gamma_m = 0 \implies \theta_{mk} \propto \alpha_{mk}
-	\implies \theta_{mk} = \frac{\alpha_{mk}}{\sum_{k = 1}^K \alpha_{mk}} = \frac{\sum_{i = 1}^n X_k^{(i)} Z_m^{(i)}}{\sum_{i = 1}^n \left(\sum_{k=1}^KX_k^{(i)}\right) Z_m^{(i)}}
+	\implies \theta_{mk} = \frac{\alpha_{mk}}{\sum_{k = 1}^K \alpha_{mk}} = \frac{\sum_{i = 1}^n X_k^{(i)} Z_m^{(i)}}{\sum_{i = 1}^n \left(\sum_{k=1}^K X_k^{(i)}\right) Z_m^{(i)}}
 \]
 
 D'où finalement :
 
 \begin{equation}
-	\theta_{mk} = \frac{\sum_{i = 1}^n X_k^{(i)} Z_m^{(i)}}{\sum_{i = 1}^n Z_m^{(i)}}
+	\left( \widehat{{\theta_{MLE}}} \right)_{mk} = \frac{\sum_{i = 1}^n X_k^{(i)} Z_m^{(i)}}{\sum_{i = 1}^n Z_m^{(i)}}
 \end{equation}
+
+On pourra remarquer que l'on peut s'affranchir de l'hypothèse implicite qu'aucune composante de \(\bm{\pi}\) ni de \(\bm{\theta}\) n'est nulle. En effet, si tel est le cas, alors la probabilité d'observer une telle observation est nulle.
+
+\section{Linear classification}
+
+\subsection{Generative model : Linear Discriminant Analysis}
+
 
 \end{document}
