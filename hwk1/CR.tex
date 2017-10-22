@@ -226,7 +226,8 @@ ce qui permet de déterminer la log-vraisemblance de l'échantillon composé de 
 \( \ell(\Theta) \) est donc une fonction stricement concave en \( \uppi\) par stricte concavité du logarithme, en \( \mu_0 \) et \( \mu_1 \) par stricte concavité de l'opposé d'une forme quadratique (avec les valeurs propres de  \( \Sigma \) strictement positives), et en \( \Sigma \) par convextié du logdet.
 Le problème de maximisation \( \ell(\Theta) \) admet une solution unique, notée \( (\widehat{\mu_{0, MLE}}, \widehat{\mu_{1, MLE}}, \widehat{\Sigma_{MLE}}, \widehat{\uppi_{MLE}}) \) que l'on trouve par dérivation de~\eqref{2_1_logl}.
 
-\subsubsection{Par rapport à \protect \(\uppi \)}
+\subsubsection{Calcul du MLE}
+\paragraph*{Par rapport à \protect \(\uppi \)}
 
 \[
 	\frac{\partial \ell(\mu_0, \mu_1, \Sigma, \uppi)}{\partial \uppi} = 	\sum_{n = 1}^N\left( \frac{y_n}{\uppi} - \frac{1 - y_n}{1 - \uppi} \right) = 0
@@ -240,7 +241,7 @@ D'où finalement :
 \end{equation}
 qui est la moyenne empirique des classes observées.
 
-\subsubsection{Par rapport à \protect \(\mu_0 \) et \protect \(\mu_1 \)}
+\paragraph*{Par rapport à \protect \(\mu_0 \) et \protect \(\mu_1 \)}
 \[
 	\frac{\partial \ell(\mu_0, \mu_1, \Sigma, \uppi)}{\partial \mu_0} = 	\sum_{n = 1}^N\left((1 - y_n)(- \Sigma^{-1}(x_n - \mu_0)) \right) = 0
 	\implies \mu_0 = \frac{\sum_{n = 1}^N (1 - y_n)x_n}{\sum_{n = 1}^N (1 - y_n)}
@@ -256,7 +257,7 @@ Et de la même façon :
 	\label{2_1_mu1}
 \end{equation}
 
-\subsubsection{Par rapport à \protect\( \Sigma\)}
+\paragraph*{Par rapport à \protect\( \Sigma\)}
 En introduisant temporairement \( \Lambda = \Sigma^{-1}\), la log-vraisemblance se réecrit :
 
 \begin{equation}
@@ -281,20 +282,65 @@ En introduisant aussi :
 On peut réecrire~\eqref{2_1_lambda_l} sous la forme suivante :
 \begin{equation}
 	\begin{split}
-		\ell(\Theta) & =  \sum_{n = 1}^N
-		\left(y_n \left(\ln
-			\uppi - \ln(2\pi) + \frac{1}{2}\ln\det\Lambda -\frac{1}{2}\tr(\widetilde \Sigma_1 \Lambda) \right)\right)\\
-		&+ 	\sum_{n = 1}^N\left((1 - y_n)
-		\left(\ln(1 - \uppi) - \ln(2\pi) + \frac{1}{2}\ln\det\Lambda -\frac{1}{2}\tr(\widetilde \Sigma_0 \Lambda) \right)\right)
+		\ell(\Theta) & = -N\ln(2\pi) + A\ln\uppi + (N - A)\ln(1 - \uppi) + \frac{N}{2}\ln\det\Lambda - \frac{N - A}{2}\tr(\widetilde \Sigma_0 \Lambda) -\frac{A}{2}\tr(\widetilde \Sigma_1 \Lambda)\\
+		\label{2_1_lambda_trace_l}
 	\end{split}
-	\label{2_1_lambda_trace_l}
 \end{equation}
 
 Dérivant~\eqref{2_1_lambda_trace_l} par rapport à \( \Lambda\) :
 
 \[
-	\frac{\partial \ell(\mu_0, \mu_1, \Sigma, \uppi)}{\partial \mu_0} = 	\sum_{n = 1}^N\left((1 - y_n)(- \Sigma^{-1}(x_n - \mu_0)) \right) = 0
-	\implies \mu_0 = \frac{\sum_{n = 1}^N (1 - y_n)x_n}{\sum_{n = 1}^N (1 - y_n)}
+	\frac{\partial \ell(\mu_0, \mu_1, \Lambda, \uppi)}{\partial \Lambda} = \frac{N}{2}\Lambda^{-1} - \frac{N - A}{2}\widetilde \Sigma_0 - \frac{A}{2}\widetilde \Sigma_1= 0
+	\implies \Lambda^{-1} = \frac{1}{N}\left((N - A)\widetilde \Sigma_0 + A\widetilde \Sigma_1\right)
 \]
+D'où finalement :
+\begin{equation}
+	\widehat{\Sigma_{MLE}} = \frac{1}{N}\left((N - A)\widetilde \Sigma_0 + A\widetilde \Sigma_1\right)
+\end{equation}
+
+
+\subsubsection{Comparaison avec la régression logistique}
+
+Le modèle d'une régression logistique repose sur un modèle \( (\bm{\omega}, \bm{b})\) tel que :
+\begin{equation}
+	p(y = 1 | x) = \sigma(\bm{\omega}^\intercal x + \bm{b})
+\end{equation}
+
+Dans le cas du \textit{LDA}, on peut également calculer cette probabilité comme suit :
+\begin{equation}
+	\begin{split}
+		p(y = 1 | x) &= \frac{p(x | y = 1)p(y = 1)}{p(x)} \\
+		&= \frac{p(x | y = 1)p(y = 1)}{p(x | y = 0)p(y = 0) + p(x | y = 1)p(y = 1)} \\
+		&= 1 / \left(1 + \frac{p(x | y = 0)p(y = 0)}{p(x | y = 1)p(y = 1)}\right)\\
+		&= 1 / \left(1 + \frac{1 - \uppi}{\uppi}\exp\left(-\frac{1}{2}(x - \mu_0)^\intercal\Sigma^{-1}(x - \mu_0) + \frac{1}{2}(x - \mu_1)^\intercal\Sigma^{-1}(x - \mu_1)\right)\right)\\
+		&= \sigma\left(-\ln(\frac{1 - \uppi}{\uppi}) - \frac{1}{2}Q(\mu_0, \mu_1, \Sigma^{-1}, x)\right)
+	\end{split}
+	\label{2_1_LDA1}
+\end{equation}
+Où :
+\begin{equation*}
+	\begin{split}
+		Q(\mu_0, \mu_1, \Sigma^{-1}, x) &= -(x - \mu_0)^\intercal\Sigma^{-1}(x - \mu_0) + (x - \mu_1)^\intercal\Sigma^{-1}(x - \mu_1)\\
+		Q(\mu_0, \mu_1, \Sigma^{-1}, x) &= -x^\intercal\Sigma^{-1}x + \mu_0^\intercal\Sigma^{-1}x + x^\intercal\Sigma^{-1}\mu_0 - \mu_0^\intercal\Sigma^{-1}\mu_0\\
+		&+ x^\intercal\Sigma^{-1}x - \mu_1^\intercal\Sigma^{-1}x - x^\intercal\Sigma^{-1}\mu_1 + \mu_1^\intercal\Sigma^{-1}\mu_1 \\
+		Q(\mu_0, \mu_1, \Sigma^{-1}, x) &= 2(\mu_0 - \mu_1)^\intercal\Sigma^{-1}x + \mu_1^\intercal\Sigma^{-1}\mu_1 - \mu_0^\intercal\Sigma^{-1}\mu_0\\
+	\end{split}
+\end{equation*}
+
+Ainsi, le terme quadratique disparaît sous l'hyopthèse de l'égalité des matrices de covariance entre les deux gaussiennes, d'où le L de LDA, et on peut écrire~\eqref{2_1_LDA1} sous la forme :
+\begin{equation}
+	\begin{split}
+		p(y = 1 | x) &= \sigma\left((\mu_1 - \mu_0)^\intercal\Sigma^{-1}x + \mu_0^\intercal\Sigma^{-1}\mu_0 - \mu_1^\intercal\Sigma^{-1}\mu_1 - \ln(\frac{1 - \uppi}{\uppi}))\right) \\
+		p(y = 1 | x) &= \sigma\left(\bm{\omega_{LDA}}^\intercal x + \bm{b_{LDA}}\right)
+	\end{split}
+\end{equation}
+Où :
+\begin{equation}
+	\begin{split}
+		\bm{\omega_{LDA}} & = \Sigma^{-1} (\mu_1 - \mu_0)\\
+		\bm{b_{LDA}} &= \mu_0^\intercal\Sigma^{-1}\mu_0 - \mu_1^\intercal\Sigma^{-1}\mu_1 - \ln(\frac{1 - \uppi}{\uppi})
+	\end{split}
+\end{equation}
+La LDA est donc équivalent à une régression logistique les paramètres \((\bm{\omega_{LDA}}, \bm{b_{LDA}}) \)
 
 \end{document}
