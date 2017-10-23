@@ -148,7 +148,7 @@ On peut donc écrire le Lagrangien, en utilisant les multiplicateurs de Lagrange
 	\label{1_lagrang}
 \end{equation}
 
-Le problème admet une solution unique, notée \( (\bm{\widehat{\pi_{MLE}}}, \bm{\widehat{\theta_{MLE}}}) \) que l'on trouve par dérivation de~\eqref{1_lagrang}
+Le problème admet une solution unique, notée \( (\bm{\widehat{\pi_{MLE}}}, \bm{\widehat{\theta_{MLE}}}) \) que l'on trouve par dérivation de~\eqref{1_lagrang}, puisque cette expression est différentiable.
 
 \subsection{Par rapport à \protect\(\pi_m\)}
 
@@ -224,7 +224,7 @@ ce qui permet de déterminer la log-vraisemblance de l'échantillon composé de 
 \end{equation}
 
 \( \ell(\Theta) \) est donc une fonction stricement concave en \( \uppi\) par stricte concavité du logarithme, en \( \mu_0 \) et \( \mu_1 \) par stricte concavité de l'opposé d'une forme quadratique (avec les valeurs propres de  \( \Sigma \) strictement positives), et en \( \Sigma \) par convextié du logdet.
-Le problème de maximisation \( \ell(\Theta) \) admet une solution unique, notée \( (\widehat{\mu_{0, MLE}}, \widehat{\mu_{1, MLE}}, \widehat{\Sigma_{MLE}}, \widehat{\uppi_{MLE}}) \) que l'on trouve par dérivation de~\eqref{2_1_logl}.
+De plus, \( \ell(\Theta) \) est différentiable. Le problème de maximisation \( \ell(\Theta) \) admet une solution unique, notée \( (\widehat{\mu_{0, MLE}}, \widehat{\mu_{1, MLE}}, \widehat{\Sigma_{MLE}}, \widehat{\uppi_{MLE}}) \) que l'on trouve par dérivation de~\eqref{2_1_logl}.
 
 \subsubsection{Calcul du MLE}
 \paragraph*{Par rapport à \protect \(\uppi \)}
