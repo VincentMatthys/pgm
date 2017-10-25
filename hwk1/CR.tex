@@ -2,6 +2,13 @@
 \usepackage[utf8]{inputenc}
 \usepackage[T1]{fontenc}
 \usepackage[french]{babel}
+
+% ------------------------- Color table ----------------------------------------
+\usepackage{multirow}
+\usepackage[table]{xcolor}
+\definecolor{maroon}{cmyk}{0,0.87,0.68,0.32}
+% ------------------------------------------------------------------------------
+
 \usepackage{amscd}
 \usepackage{amsthm}
 \usepackage{physics}
@@ -20,6 +27,11 @@
 
 \usepackage{array}
 \usepackage{dsfont}% indicatrice : \mathds{1}
+
+
+% -------------------------- Mathematics ---------------------------------------
+\graphicspath{{images/}} % For the images path
+% ------------------------------------------------------------------------------
 
 % -------------------------- Mathematics ---------------------------------------
 \usepackage{mathrsfs, amsmath, amsfonts, amssymb}
@@ -44,11 +56,6 @@
 % \addbibresource{biblio.bib}
 % ------------------------------------------------------------------------------
 
-% ------------------------- Color table ----------------------------------------
-\usepackage{multirow}
-% \usepackage[table]{xcolor}
-% \definecolor{maroon}{cmyk}{0,0.87,0.68,0.32}/
-% ------------------------------------------------------------------------------
 
 \setcounter{tocdepth}{4} %Count paragraph
 \setcounter{secnumdepth}{4} %Count paragraph
@@ -58,9 +65,9 @@
 % \graphicspath{{../images/}}
 
 \usepackage{array,tabularx}
-% \newcolumntype{L}[1]{>{\raggedright\let\newline\\\arraybackslash\hspace{0pt}}m{#1}}
-% \newcolumntype{C}[1]{>{\centering\let\newline\\\arraybackslash\hspace{0pt}}m{#1}}
-% \newcolumntype{R}[1]{>{\raggedleft\let\newline\\\arraybackslash\hspace{0pt}}m{#1}}
+\newcolumntype{L}[1]{>{\raggedright\let\newline\\\arraybackslash\hspace{0pt}}m{#1}}
+\newcolumntype{C}[1]{>{\centering\let\newline\\\arraybackslash\hspace{0pt}}m{#1}}
+\newcolumntype{R}[1]{>{\raggedleft\let\newline\\\arraybackslash\hspace{0pt}}m{#1}}
 
 
 % ------------------------------ TITLE -----------------------------------------
@@ -344,5 +351,95 @@ Où :
 La LDA est donc équivalent à une régression logistique de paramètres \((\bm{\omega_{LDA}}, \bm{b_{LDA}}) \)
 
 \subsubsection{Résultats numériques}
+
+\begin{table}[H]
+	\centering
+	\begin{tabular}{|L{3cm} || C{2cm} | C{3cm} | C{3cm} | C{4cm}|}
+		\hline
+		\rowcolor{maroon!10}
+		Jeu de données d'entraînement & \( \widehat{\uppi_{MLE}} \) & \( \widehat{\mu_{0, MLE}} \)   & \( \widehat{\mu_{1, MLE}} \)   & \(\widehat{\Sigma_{MLE}}\)     \\\hline
+		A                             & \( 0.333 \)                 & \(\begin{pmatrix}2.89\\ -0.984 \end{pmatrix}\) & \(\begin{pmatrix}2.69\\ 0.866\end{pmatrix}\) & \(\begin{pmatrix}2.44 & -1.13 \\-1.13 & 0.614\\\end{pmatrix}\) \\\hline
+		B                             & \( 0.500 \)                 & \(\begin{pmatrix}3.34\\ -0.835 \end{pmatrix}\) & \(\begin{pmatrix}-3.22\\ 1.08\end{pmatrix}\) & \(\begin{pmatrix}3.35 & -0.135 \\-0.135 & 1.74\\\end{pmatrix}\) \\\hline
+		C                             & \( 0.625 \)                 & \(\begin{pmatrix}2.79\\ -0.838 \end{pmatrix}\) & \(\begin{pmatrix}-2.94\\ -0.958\end{pmatrix}\) & \(\begin{pmatrix}2.88 & -0.634 \\-0.634 & 5.20\\\end{pmatrix}\) \\\hline
+	\end{tabular}
+	\caption{Valeurs numériques des estimateurs MLE du modèle LDA}
+	\label{tab:LDA}
+\end{table}
+
+Les résultats numériques obtenus pour les estimateurs pour le modèle LDA sont présentés en Table~\ref{tab:LDA}, Graphiquement, on représente également en Figure~\ref{fig:LDA} les zones de \( \R^2 \) en deux couleurs suivant la classe attribuée par le modèle LDA déterminé.
+
+\begin{figure}[H]
+	\centering
+	\includegraphics[height = 0.9\textheight]{LDA}
+	\caption{Représentation graphique obtenue pour le modèle LDA sur les 3 jeux de données A, B, C respectivement de en haut en bas. Sur la colonne de gauche, les sous-ensembles d'entrainement. Sur la colonne de droitem les sous-ensembles de test. La courbe de transition de la classe bleue à la classe rouge est définie par l'équation \( p(y = 1 | x) = 0.5\)}
+	\label{fig:LDA}
+\end{figure}
+
+\subsection{Logistic regression}
+
+\begin{table}[H]
+	\centering
+	\begin{tabular}{|L{3cm} || C{2cm} | C{3cm} |}
+		\hline
+		\rowcolor{maroon!10}
+		Jeu de données d'entraînement & \( \widehat{\omega_{MLE}} \)   & \( \widehat{b_{MLE}} \) \\\hline
+		A                             & \(\begin{pmatrix}-593\\ -1029 \end{pmatrix}\) & -98.6                   \\\hline
+		B                             & \(\begin{pmatrix}-1.71\\ 1.02 \end{pmatrix}\) & 1.35                    \\\hline
+		C                             & \(\begin{pmatrix}-2.20\\ 0.709 \end{pmatrix}\) & 0.959                   \\\hline
+	\end{tabular}
+	\caption{Valeurs numériques des estimateurs MLE obtenus par IRLS du modèle de régression logistique}
+	\label{tab:logistic}
+\end{table}
+
+Les résultats numériques obtenus pour les estimateurs pour le modèle de régression lgositique sont présentés en Table~\ref{tab:logistic}, Graphiquement, on représente également en Figure~\ref{fig:logistic} les zones de \( \R^2 \) en deux couleurs suivant la classe attribuée par le modèle de régression logsitique déterminé.
+
+\begin{figure}[H]
+	\centering
+	\includegraphics[height = 0.9\textheight]{logistic}
+	\caption{Représentation graphique obtenue pour le modèle de régression logistique sur les 3 jeux de données A, B, C respectivement de en haut en bas. Sur la colonne de gauche, les sous-ensembles d'entrainement. Sur la colonne de droitem les sous-ensembles de test. La courbe de transition de la classe bleue à la classe rouge est définie par l'équation \( p(y = 1 | x) = 0.5\)}
+	\label{fig:logistic}
+\end{figure}
+
+\subsection{Linear regression}
+
+\begin{table}[H]
+	\centering
+	\begin{tabular}{|L{3cm} || C{3cm} | C{3cm} | C{4cm}|}
+		\hline
+		\rowcolor{maroon!10}
+		Jeu de données d'entraînement & \( \widehat{\omega_{MLE}} \)   & \( \widehat{b_{MLE}} \) & \( \widehat{\sigma^2_{MLE}} \) \\\hline
+		A                             & \(\begin{pmatrix}-0.264\\ -0.373 \end{pmatrix}\) & \(0.492\)               & \( 0.0399\)                    \\\hline
+		B                             & \(\begin{pmatrix}-0.104\\ 0.0518 \end{pmatrix}\) & \(0.500\)               & 0.0543                         \\\hline
+		C                             & \(\begin{pmatrix}-0.128\\ -0.0170 \end{pmatrix}\) & \(0.508\)               & \( 0.0622\)                    \\\hline
+	\end{tabular}
+	\caption{Valeurs numériques des estimateurs MLE obtenus par les équations normales du modèle de régression linéaire}
+	\label{tab:linear}
+\end{table}
+
+Les résultats numériques obtenus pour les estimateurs pour le modèle de régression linéaire sont présentés en Table~\ref{tab:linear}, Graphiquement, on représente également en Figure~\ref{fig:linear} les zones de \( \R^2 \) en deux couleurs suivant la classe attribuée par le modèle de régression logsitique déterminé. La courbe de séparation pour \( p(y = 1 | x) = 0.5\) n'est plus linéaire comme précédemment du fait de la forme quadratique qui intervient dans cette probabilité qui suit une loi de distribution gaussienne \( \sim N(\omega^{\intercal} X + b, \sigma^2)\)
+
+\begin{figure}[H]
+	\centering
+	\includegraphics[height = 0.9\textheight]{linear}
+	\caption{Représentation graphique obtenue pour le modèle de régression linéaire sur les 3 jeux de données A, B, C respectivement de en haut en bas. Sur la colonne de gauche, les sous-ensembles d'entrainement. Sur la colonne de droitem les sous-ensembles de test. La courbe de transition de la classe bleue à la classe rouge est définie par l'équation \( p(y = 1 | x) = 0.5\)}
+	\label{fig:linear}
+\end{figure}
+
+\subsection{Compare previous models}
+
+\begin{table}[H]
+	\centering
+	\begin{tabular}{|L{2cm}||C{2cm}|C{2cm}|C{2cm}|C{2cm}|C{2cm}|C{2cm}|}
+		\hline \rowcolor{maroon!10}
+		Modèle & A train & A test & B train & B test & C train & C test \\\hline
+		LDA    & 0.0133  & 0.0200 & 0.0300  & 0.0415 & 0.0550  & 0.0423 \\\hline
+	\end{tabular}
+	\caption{Erreur de classification de chacun des trois modèles précédemment présentés, sur chaque jeu de données d'apprentissage (train) et de test.}
+	\label{}
+
+\end{table}
+
+\subsection{QDA model}
+
 
 \end{document}
