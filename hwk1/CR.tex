@@ -441,11 +441,14 @@ Les résultats numériques obtenus pour les estimateurs pour le modèle de régr
 \end{table}
 
 L'erreur de classification en entraînement et en test a été calculée et est présentée en Table~\ref{tab:2.4}. D'après cette table, on constate que :
-\begin{enumerate}
+\begin{itemize}
 	\item A une exception près (qui est la régression logistique sur C test), l'erreur en apprentissage est moindre qu'en test. Cela va de soi, puisque les estimateurs sont construits de sorte à maximiser la vraisemblance des observations déjà effectuées, et non pas celles qui ne l'ont pas encore été.
 	\item La LDA et la régression linéaire donne des erreurs similaires en test et en apprentissage, tandis que la régression logistique a tantôt une erreur nulle en apprentissage mais pas en test, tantôt une erreur similaire en apprentissage et en test, tantôt une erreur plus faible en test qu'en apprentissage. Cela s'explique par le fait que la régression logistique n'est parfaitement capable que de séparer des données linéairement séparables.
-	\item Sur le premier jeu de données, linéairement séparables en apprentissage, la régression logistique donne une erreur nulle. La LDA donne une erreur entre \( 1~\%\) en apprentissage et \(2~\%\) en test, stable avec la multiplication de données à la frontière de décision. La stabilité et la relative performance s'expliquent par la vérification de l'hypothèse de distribution des données suivant deux gaussiennes très étirées, avec peu de recoupement. La régression linéaire, pour sa part, donne des résultats toujours substenciellement moins bons. Le jeu de données C ne peut plus raisonnablement être considéré comme issus de la distribution de deux gaussiennes
-\end{enumerate}
+	\item Sur le premier jeu de données, linéairement séparables en apprentissage, la régression logistique donne une erreur nulle. La LDA donne une erreur entre \( 1~\%\) en apprentissage et \(2~\%\) en test, stable avec la multiplication de données à la frontière de décision. La stabilité et la relative performance s'expliquent par la vérification de l'hypothèse de distribution des données suivant deux gaussiennes très étirées, de matrice de covariance similaire, avec peu de recoupement.
+	\item Sur le troisième jeu de données, en comparant le modèle LDA au modèle de régression logistique, on constate que que la direction de la frontiere de décision est largement différente, résultant, dans le cas du modèle LDA, dans le passage d'une partie non négligeable du premier noeud gaussien dans la zone opposée du classifieur. Cette attraction de la frontière par le 3\up{e} noeud bleu, s'explique par la masse représentée par ce dernier noeud dans les estimateurs MLE, masse qui n'intervient pas dans l'évaluation itérative de \( \omega \) en régression logistique, une fois qu'elle est passée dans le bon côté de la frontière de décision pour un \( \omega\) donné.
+	\item La régression linéaire, pour sa part, donne des résultats toujours substenciellement moins bons.
+	\item Le jeu de données C ne peut plus raisonnablement être considéré comme issus de la distribution de deux gaussiennes. On y constate au moins 3 noeuds, et tous les modèles présentés y performent le moins bien, à part le modèle de régression logistique en test pour une raison déjà expliquée.
+\end{itemize}
 
 \subsection{QDA model}
 
@@ -459,7 +462,7 @@ L'erreur de classification en entraînement et en test a été calculée et est 
 		B                             & \( 0.500 \)                 & \(\begin{pmatrix}3.34\\ -0.835 \end{pmatrix}\) & \(\begin{pmatrix}-3.22\\ 1.08\end{pmatrix}\) & \(\begin{pmatrix}3.35 & -0.135 \\-0.135 & 1.74\\\end{pmatrix}\) & \(\begin{pmatrix}4.15 & -1.33 \\-1.33 & 0.516\\\end{pmatrix}\) \\\hline
 		C                             & \( 0.625 \)                 & \(\begin{pmatrix}2.79\\ -0.838 \end{pmatrix}\) & \(\begin{pmatrix}-2.94\\ -0.958\end{pmatrix}\) & \(\begin{pmatrix}2.90 & 1.24 \\ 1.24 & 2.92\\\end{pmatrix}\) & \(\begin{pmatrix}2.87 & -1.76 \\-1.76 & 6.56\\\end{pmatrix}\) \\\hline
 	\end{tabular}
-	\caption{Valeurs numériques des estimateurs MLE du modèle LDA}
+	\caption{Valeurs numériques des estimateurs MLE du modèle QDA}
 	\label{tab:QDA}
 \end{table}
 
@@ -467,8 +470,25 @@ Les résultats numériques obtenus pour les estimateurs pour le modèle de régr
 
 \begin{figure}[H]
 	\centering
-	\includegraphics[height = 0.9\textheight]{linear}
+	\includegraphics[height = 0.9\textheight]{QDA}
 	\caption{Représentation graphique obtenue pour le modèle QDA sur les 3 jeux de données A, B, C respectivement de en haut en bas. Sur la colonne de gauche, les sous-ensembles d'entrainement. Sur la colonne de droite les sous-ensembles de test. La courbe de transition de la classe bleue à la classe rouge est définie par l'équation \( p(y = 1 | x) = 0.5\)}
 	\label{fig:QDA}
 \end{figure}
+
+\begin{table}[H]
+	\centering
+	\begin{tabular}{|L{2cm}||C{2cm}|C{2cm}|C{2cm}|C{2cm}|C{2cm}|C{2cm}|}
+		\hline \rowcolor{maroon!10}
+		Modèle                & A train & A test & B train & B test & C train & C test \\\hline
+		LDA                   & 0.0133  & 0.0200 & 0.0300  & 0.0415 & 0.0550  & 0.0423 \\\hline
+		Régression logistique & 0.000   & 0.0326 & 0.0200  & 0.0430 & 0.0400  & 0.0227 \\\hline
+		Régression linéaire   & 0.0400  & 0.0473 & 0.0800  & 0.0965 & 0.0725  & 0.0610 \\\hline
+		QDA                   & 0.00667 & 0.0187 & 0.0233  & 0.0234 & 0.0525  & 0.0403 \\\hline
+	\end{tabular}
+	\caption{Erreur de classification de chacun des trois modèles précédemment présentés et du modèle QDA, sur chaque jeu de données d'apprentissage (train) et de test}
+	\label{tab:2.5}
+\end{table}
+
+L'erreur de classification en entraînement et en test a été calculée et est présentée et rajoutée au tableau déja existant en Table~\ref{tab:2.5}. D'après cette table, on constate que : pour les jeux de donées A et B, c'est le modèle QDA qui établit le plus petit taux d'erreur de classification. Le dernier jeu de set, C, pose toujours problène, puisqu'étant issus d'au moins 3 neouds gaussiens distincts. On constate également que l'erreur en apprentissage et en test est très similaire. Cela peut s'interpréter aisément étant donné que la frontière de décision à \( p(y = 1 |x)\), régulière et quadratique, permet d'aller chercher des points de même classe inaccessible avec des séparations linéaires tout en étant assez généralisatrice (par sa réguliarité), ce que le modèle LDA ne peut pas faire. D'autre part, si on compare toujours au modèle LDA, on constate que les matrices de covariances estimées par le modèle QDA en A et B sont assez proches pour chaque classe, et que le modèle LDA devrait donc être un modèle valable pour ces jeux de données A et B. Pour autant, il y a jusqu'à un facteur 2 d'erreur en moins en apprentissage et en test pour le QDA par rapport au LDA, expliquable donc principalement par la forme quadratique de la frontière de décision.
+
 \end{document}
