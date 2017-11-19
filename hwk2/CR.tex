@@ -10,14 +10,14 @@
 
 \begin{document}
 \begin{tabularx}{0.8\textwidth}{@{} l X r @{} }
-	{\textsc{Master MVA}}                   &  & \textsc{Homework 1} \\
+	{\textsc{Master MVA}}                   &  & \textsc{Homework 2} \\
 	\textsc{Probabilistic graphical models} &  & {Vincent Matthys}   \\
 \end{tabularx}
 \vspace{1.5cm}
 \begin{center}
 	\rule[11pt]{5cm}{0.5pt}
 
-	\textbf{\LARGE \textsc{Compte-rendu du devoir 1}}
+	\textbf{\LARGE \textsc{Compte-rendu du devoir 2}}
 	\vspace{0.5cm}\\
 	Vincent Matthys\\
 	\rule{5cm}{0.5pt}
@@ -58,6 +58,47 @@ Etant donné le modèle graphique orienté \(G\) :
 
 
 \subsection{}
+
+
+\clearpage
+
+\section{Entropie et information mutuelle}
+
+\subsection{}
+
+\subsubsection{}
+
+Avec les conventions définies :
+
+\begin{equation}
+	\begin{split}
+		p_X(x) &= \mathbb{P}(X = x) < 1 \Rightarrow p_X(x)\log(p_X(x)) < 0 \Rightarrow -\sum_{x \in \mathcal{X}} p_X(x)\log(p_X(x)) = H(X) \geq 0 \\
+		H(X) &= 0 \Rightarrow \forall x \in \mathcal{X},\, p_X(x)\log(p_X(x)) = 0 \Rightarrow \forall x \in \mathcal{X},\, p_X(x) = 1 \Rightarrow \text{X is constant with probability 1}
+	\end{split}
+	\label{eq_31a}
+\end{equation}
+
+\subsubsection{}
+
+Par définition de la Kullback-Leibler divergence il vient :
+
+\begin{equation}
+	\begin{split}
+		D(p_X \parallel q) &= \sum_{x \in \mathcal{X}}p_X(x)\log\frac{p_X(x)}{q(x)}\\
+		&= -\sum_{x \in \mathcal{X}}p_X(x)\log q(x) - H(X) \\
+		&= -\sum_{x \in \mathcal{X}}p_X(x)\log\frac{1}{|X|} - H(X) \quad \text{puisque} \quad \forall x \in \mathcal{X},\, q(x) = \frac{1}{k} = \frac{1}{k}\\
+		&= \log k\sum_{x \in \mathcal{X}}p_X(x) - H(X)\\
+		&= \log k - H(X) \quad \text{car} \quad \sum_{x \in \mathcal{X}}p_X(x) = 1
+	\end{split}
+	\label{eq_31b}
+\end{equation}
+
+\subsubsection{}
+Avec les équations~\eqref{eq_31a} et \eqref{eq_31b}, on a directement
+
+\begin{equation}
+	\log k - H(X) = D(p_X \parallel q) \leq \log k
+\end{equation}
 
 
 
