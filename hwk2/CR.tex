@@ -151,7 +151,30 @@ D'après l'équation~\eqref{eq_32c}, pour \(p_1\) et \(p_2\) données, l'entropi
 
 \section{Gaussian Mixtures}
 
-\subsection{subsection name}
+\subsection{K-means}
+
+\begin{figure}[H]
+	\centering
+	\includegraphics[width = \textwidth]{4_a}
+	\caption{Visualisation du clustering obtenu par k-means des données d'entrainement sur 9 initialisations aléatoires des centroïdes}
+	\label{fig_4_K_means}
+\end{figure}
+
+En figure~\ref{fig_4_K_means} sont présentés les résultats du clustering des données d'entraînement \textit{EMGaussian.data} avec 9 initialisations aléatoires distinctes des centroïdes. La condition d'arrêt est remplie quand la variation de distorsion est inférieure à 1. On a utilisé l'angle des centroïdes finaux afin d'artificiellement repérer par les mêmes couleurs et mêmes chiffres les clusters situés dans des zones similaires du plan. On constate que la distorsion de ces 9 initialisations différentes ne diffère que par le 3\up{e} chiffre significatif, avec une moyenne de \(3.239~10^{3}\) et avec un écart-type \(1.335\). Les minima locaux de cette distorsion ont donc des valeurs très semblables sur ces itérations, et les positions des centroïdes finaux sont regroupées dans la table~\ref{tab_4_a}. On peut constater que les variations autour des positions moyennes sont de l'ordre du dixième dans le pire des cas, correspondant à une variation en distance de l'ordre de \(0.3~\%\). Néanmoins on constate que les points à la frontière des clusters ont tendance à basculer, tantôt vers l'un ou l'autre des clusters, notamment à la frontière des clusters jaune bleu et rouge, où les points proches de \((0,0)\) sont facilement attribué par l'humain au cluster 1, rouge, qui présente une forme très allongée, différente des autres formes de clusters. Or la clusterisation par k-means ne permet pas de prendre en compte cette spécificité de forme. En définitif, les clusters trouvés par k-means sont, pour ce jeu de données d'entraînement, très stables pour la majorité des initialisations aléatoires et permette de séparer en première approximation, indépendamment de la forme du cluster, les points suivant un consensus proche de celui de l'homme, à l'exception de quelques points centraux.
+
+\begin{table}
+	\centering
+	\begin{tabular}{r|r|r}
+		\hline
+		Centroïde & \(\mu_x \pm \sigma_x\) & \(\mu_y \pm \sigma_y\) \\\hline
+		1         & \(-3.747\pm 0.068\)    & \(-4.193\pm 0.081\)    \\\hline
+		2         & \( -2.177 \pm 0.044\)  & \( 4.060\pm 0.078 \)   \\\hline
+		3         & \( 3.794\pm 0.007\)    & \( 5.038\pm 0.048\)    \\\hline
+		4         & \( 3.483\pm 0.107\)    & \( -2.795\pm 0.105 \)  \\\hline
+	\end{tabular}
+	\caption{Positions des centroïdes sur les 9 initialisations aléatoires}
+	\label{tab_4_a}
+\end{table}
 
 \subsection{subsection name}
 
