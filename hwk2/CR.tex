@@ -176,9 +176,62 @@ En figure~\ref{fig_4_K_means} sont présentés les résultats du clustering des 
 	\label{tab_4_a}
 \end{table}
 
-\subsection{subsection name}
+\subsection{Mixture de gaussiennes isotropiques}
 
-\subsection{subsection name}
+Dans le cas d'une mixture de gaussiennes isotropiques, on peut réecrire l'étape de maximisation suivant :
+
+\begin{equation}
+	\begin{split}
+		\bm{\theta}^{(t + 1)} = \operatorname{arg}\max_{\bm{\theta}}\left(\mathbb{E}_{\bm{z} \mid \bm{x}, \bm{\theta}^{(t)}}\left[\sum_{n = 1}^N\sum_{k = 1}^4q_{nk}^{(t)}\left(\log\pi_k -
+		\frac{1}{2}\log|\Sigma_k|-\frac{1}{2}\left(x_i - \mu_k\right)^{\intercal}\Sigma_k^{-1}\left(x_i - \mu_k\right)\right)\right]\right)
+	\end{split}
+\end{equation}
+
+où \(\bm{\theta} = \left(\bm{\pi}, \bm{\mu}, \bm{\Sigma}\right)\) et \(q_{nk}^{(t)} = \mathbb{P}\left(z_n = k | x_n, \bm{\theta}^{(t)}\right)\) avec \(z_n\) variable latente associée à \(x_n\).
+
+On peut alors séparer la maximisation suivant \(\bm{\pi}\) et suivant \(\left(\bm{\mu}, \bm{\Sigma})\right)\), de sorte que :
+
+\begin{equation}
+	\begin{split}
+		\bm{\pi}^{(t + 1)} &= \operatorname{arg}\max_{\bm{\pi}}\left(\sum_{n = 1}^N\sum_{k = 1}^4q_{nk}^{(t)}\log\pi_k\right) \quad \text{avec}\quad\forall n,\,\sum_{k = 1}^4q_{nk} = 1\\
+		(\bm{\mu}^{(t + 1)}, \bm{\Sigma}^{(t + 1)}) &= \operatorname{arg}\max_{\bm{\mu}, \bm{\Sigma}}\left(\sum_{n = 1}^N\sum_{k = 1}^4q_{nk}\left(
+		-\frac{1}{2}\log|\Sigma_k|-\frac{1}{2}\left(x_i - \mu_k\right)^{\intercal}\Sigma_k^{-1}\left(x_i - \mu_k\right)\right)\right)\\
+	\end{split}
+	\label{eq_isotrop}
+\end{equation}
+
+Les deux problèmes de minimisation en~\eqref{eq_isotrop} sont différentiables et concaves (le deuxième étant analogue au calcul du MLE pour une distribution normale) et on a :
+
+\begin{equation}
+	\begin{split}
+		\frac{\partial\left(\sum_{n = 1}^N\sum_{k = 1}^4q_{nk}^{(t)}\log\pi_k^{(t+1)}\right)}{\partial\pi_k^{(t+1)}} &= \sum_{n = 1}^Nq_{nk}^{(t)} - \lambda \pi_k^{(t+1)} = 0 \quad \text{avec} \quad \lambda \in \mathbb{R}\\
+		\pi_k^{(t+1)} &\propto \sum_{n = 1}^Nq_{nk}^{(t)}\\
+		\pi_k^{(t+1)} &= \frac{\sum_{n = 1}^Nq_{nk}^{(t)}}{\sum_{k = 1}^4\sum_{n = 1}^Nq_{nk}^{(t)}} = \frac{1}{N}\sum_{n = 1}^Nq_{nk}^{(t)}
+	\end{split}
+\end{equation}
+
+
+\begin{equation}
+	\begin{split}
+		\frac{\partial\left(\sum_{n = 1}^N\sum_{k = 1}^4q_{nk}^{(t)}\left(
+		-\frac{1}{2}\left(x_i - \mu_k\right)^{\intercal}\Sigma_k^{-1}\left(x_i - \mu_k\right)\right)\right)}{\partial\mu_k} &=
+		\sum_{n = 1}^Nq_{nk}^{(t)}\left(\Sigma_k^{-1}(x_i-\mu_k^{(t+1)})\right) = 0\\
+		\mu_k^{(t + 1)} &= \frac{\sum_{n = 1}^Nq_{nk}^{(t)}x_i}{\sum_{n = 1}^Nq_{nk}^{(t)}}
+	\end{split}
+\end{equation}
+
+Avec l'hypothèse \(\bm{\Sigma_k} = \sigma_k^2\bm{I}\) d'isotropie, il vient :
+
+\begin{equation}
+	\begin{split}
+		\frac{\partial\left(\sum_{n = 1}^N\sum_{k = 1}^4q_{nk}^{(t)}\left(
+		-\frac{1}{2}\log|\Sigma_k|-\frac{1}{2}\left(x_i - \mu_k\right)^{\intercal}\Sigma_k^{-1}\left(x_i - \mu_k\right)\right)\right)}{\partial\sigma_k^2} &=
+		\sum_{n = 1}^Nq_{nk}\left(\frac{1}{\sigma_k^2} -\frac{1}{\sigma_k^4}\left(x_i-\mu_k\right)^{\intercal}\left(x_i-\mu_k\right)\right)\\
+		\sigma_k^2 &= \frac{\sum_{n = 1}^Nq_{nk}\left(x_i-\mu_k\right)^{\intercal}\left(x_i-\mu_k\right)}{\sum_{n = 1}^Nq_{nk}}
+	\end{split}
+\end{equation}
+
+\subsection{Mixture de gaussiennes générales}
 
 \subsection{subsection name}
 
