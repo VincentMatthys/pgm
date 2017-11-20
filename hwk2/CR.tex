@@ -64,7 +64,7 @@ Etant donné le modèle graphique orienté \(G\) :
 
 \section{Entropie et information mutuelle}
 
-\subsection{}
+\subsection{Entropie}
 
 \subsubsection{}
 
@@ -100,6 +100,64 @@ Avec les équations~\eqref{eq_31a} et \eqref{eq_31b}, on a directement
 	\log k - H(X) = D(p_X \parallel q) \leq \log k
 \end{equation}
 
+\subsection{Information mutuelle}
+
+\subsubsection{}
+Par définition de l'information mutuelle :
+
+\begin{equation}
+	\begin{split}
+		I(X_1, X_2) &= \sum_{(x_1,x_2)\in\mathcal{X}_1\times\mathcal{X}_2} p_{1, 2}(x_1,x_2) \log \frac{p_{1, 2}(x_1,x_2)}{p_1(x_1)\,p_2(x_2)}\\
+		I(X_1, X_2) &= D(p_{1, 2} \parallel p_1p_2) \quad \text{par définition de la Kullback-Leibler divergence}
+	\end{split}
+\end{equation}
+
+Or la Kullback-Leibler divergence est positive pour toute paire \((p_{1, 2}, p_1p_2)\) de distributions, donc \(I(X_1, X_2) \geq 0\).
+
+\subsubsection{}
+
+Toujours avec la défintion de l'information mutuelle :
+
+\begin{equation}
+	\begin{split}
+		I(X_1, X_2) &= \sum_{(x_1,x_2)\in\mathcal{X}_1\times\mathcal{X}_2} p_{1, 2}(x_1,x_2) \log \frac{p_{1, 2}(x_1,x_2)}{p_1(x_1)\,p_2(x_2)}\\
+		I(X_1, X_2) &= \sum_{(x_1,x_2)\in\mathcal{X}_1\times\mathcal{X}_2} p_{1, 2}(x_1,x_2) \log p_{1, 2}(x_1,x_2)\\ &- \sum_{(x_1,x_2)\in\mathcal{X}_1\times\mathcal{X}_2} p_{1, 2}(x_1,x_2) \log \left(p_1(x_1)p_2(x_2)\right)\\
+		I(X_1, X_2) &= -H(X_1, X_2)\\
+		&- \sum_{x_1 \in\mathcal{X}_1} \left(\sum_{x_2 \in\mathcal{X}_2}p_{1, 2}(x_1,x_2)\right) \log \left(p_1(x_1)\right)\\
+		&- \sum_{x_2 \in\mathcal{X}_2} \left(\sum_{x_1 \in\mathcal{X}_1}p_{1, 2}(x_1,x_2)\right) \log \left(p_2(x_2)\right)\\
+		I(X_1, X_2) &= -H(X_1, X_2)\\
+		&- \sum_{x_1 \in\mathcal{X}_1} p_{1}(x_1) \log \left(p_1(x_1)\right)\\
+		&- \sum_{x_2 \in\mathcal{X}_2} p_{2}(x_2) \log \left(p_2(x_2)\right)\\
+		I(X_1, X_2) &= H(X_1) + H(X_2) - H(X_1, X_2)
+	\end{split}
+	\label{eq_32b}
+\end{equation}
+
+Et ainsi l'information mutuelle peut s'écrire uniquement à partir des entropies de \(X_1\), \(X_2\) et de \((X_1, X_2)\).
+
+\subsubsection{}
+
+D'après l'éqiation~\eqref{eq_32b}, on peut réecrire :
+
+\begin{equation}
+	\begin{split}
+		H(X_1, X_2) - \left(H(X_1) + H(X_2)\right) &=  - I(X_1, X_2)\\
+		H(X_1, X_2) - \left(H(X_1) + H(X_2)\right) &\leq 0 \quad \text{puisque},\, I(X_1, X_2) \geq 0
+	\end{split}
+	\label{eq_32c}
+\end{equation}
+
+D'après l'équation~\eqref{eq_32c}, pour \(p_1\) et \(p_2\) données, l'entropie maximale correspond à \(I(X_1, X_2) = 0\), c'est-à-dire \(D(p_{1, 2} \parallel p_1p_2) = 0\) d'après l'équation~\eqref{eq_31b}. Or la Kullback-Leibler divergence s'anulle si et seulement si les distributions sont identiques. On a alors \(p_{1,2} = p_1p_2\), ce qui correspond à \(X_1 \indep X_2\).
+
+\section{Gaussian Mixtures}
+
+\subsection{subsection name}
+
+\subsection{subsection name}
+
+\subsection{subsection name}
+
+\subsection{subsection name}
 
 
 \end{document}
