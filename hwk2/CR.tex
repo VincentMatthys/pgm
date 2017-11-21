@@ -182,8 +182,9 @@ Dans le cas d'une mixture de gaussiennes isotropiques, on peut réecrire l'étap
 
 \begin{equation}
 	\begin{split}
-		\bm{\theta}^{(t + 1)} = \operatorname{arg}\max_{\bm{\theta}}\left(\mathbb{E}_{\bm{z} \mid \bm{x}, \bm{\theta}^{(t)}}\left[\sum_{n = 1}^N\sum_{k = 1}^4q_{nk}^{(t)}\left(\log\pi_k -
-		\frac{1}{2}\log|\Sigma_k|-\frac{1}{2}\left(x_i - \mu_k\right)^{\intercal}\Sigma_k^{-1}\left(x_i - \mu_k\right)\right)\right]\right)
+		\bm{\theta}^{(t + 1)} &= \operatorname{arg}\max_{\bm{\theta}}\left(\mathbb{E}_{\bm{z} \mid \bm{x}, \bm{\theta}^{(t)}}\right)\\
+		\bm{\theta}^{(t + 1)} &= \operatorname{arg}\max_{\bm{\theta}}\left(\sum_{n = 1}^N\sum_{k = 1}^4q_{nk}^{(t)}\left(\log\pi_k -
+		\frac{1}{2}\log|\Sigma_k|-\frac{1}{2}\left(x_i - \mu_k\right)^{\intercal}\Sigma_k^{-1}\left(x_i - \mu_k\right)\right)\right)
 	\end{split}
 \end{equation}
 
