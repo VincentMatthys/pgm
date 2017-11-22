@@ -51,14 +51,15 @@ Etant donné le modèle graphique orienté \(G\) :
 
 \subsection{}
 
+\textit{Non traité}.
 
 \section{Distributions factorisant sur un graphe}
 
 \subsection{}
-
+\textit{Non traité}.
 
 \subsection{}
-
+\textit{Non traité}.
 
 \clearpage
 
@@ -234,6 +235,29 @@ Avec l'hypothèse \(\bm{\Sigma_k} = \sigma_k^2\bm{I}\) d'isotropie, il vient :
 	\end{split}
 \end{equation}
 
+En figure~\ref{fig_4_b} sont présentés les résultats de la mixture de gaussiennes isotropiques sur les mêmes données d'entraînement qu'en figure~\ref{tab_4_a}. La condition d'arrêt est atteinte quand la variation de la vraisemblance est inférieure à \(10^{-3}\). La même convention d'angle a été utilisé pour identifier les clusters délimités dans les zones semblables. La table regroupant les positions des centres est également présentée en table~\ref{tab_4_b}. On constate que la différence des positions des centres de masse par rapport à la position des centres de K-means est de l'ordre de grandeur de l'écart-type sur toutes les initialisations, de sorte qu'on peut conclure que la modélisation n'apporte pas de manière significative de changement dans les posistions des centres. En revanche, on constate que plusieurs extrema locaux de vraisemblance sont trouvés. En particulier, il peut arriver que tous les points proches de \((0,0\)) soit plutôt attribués au cluster 4 qu'au 3 autres (du moins, ces points peuvent avoir une variable lattente plus grande pour le cluster 4). On peut également observer des étalement de masse des gaussiennes différentes suivant les initialisations. Enfin, la vraisemblance moyenne pour cette mixture de gaussiennes isotropiques est de \((-2.642\pm0.003)~10^3\).
+
+\begin{table}[b]
+	\centering
+	\begin{tabular}{r|r|r|r}
+		\hline
+		Centroïde & \(\mu_x \pm \sigma_x\) & \(\mu_y \pm \sigma_y\) & \(\lVert\Delta\mu\text{(kmeans-iso)}\rVert\) \\\hline
+		1         & \(-3.991\pm 0.400\)    & \(-4.417\pm 0.411\)    & \(0.256\)                                    \\\hline
+		2         & \( -2.441 \pm 0.166\)  & \( 4.278\pm 0.038 \)   & \(0.342\)                                    \\\hline
+		3         & \( 3.252\pm 0.630\)    & \( 5.040\pm 1.437\)    & \(0.542\)                                    \\\hline
+		4         & \( 3.229\pm 0.656\)    & \( -2.712\pm 1.101 \)  & \(0.267\)                                    \\\hline
+	\end{tabular}
+	\caption{Positions des centres de masse de chaque gaussienne représentée en figure~\ref{fig_4_b}, et norme de la différence des positions moyennes des centres pour k-means et des centres de masse des gaussiennes isotropiques.}
+	\label{tab_4_b}
+\end{table}
+
+\begin{figure}[H]
+	\centering
+	\includegraphics[width = \textwidth]{4_b}
+	\caption{Visualisation du clustering obtenu par mixtures de gaussiennes avec des covariances isotropiques avec 9 initialisations par K-means des données d'entrainement. Chaque couleur représente un noeud gaussien. Le maxima des variables latentes de chaque point a été représenté, ainsi que la zone contenant \(90~\%\) de la masse de chaque gaussienne, en hachuré.}
+	\label{fig_4_b}
+\end{figure}
+
 
 \subsection{Mixture de gaussiennes générales}
 
@@ -247,7 +271,47 @@ Sans l'hypothése d'isotropie, on a alors :
 	\end{split}
 \end{equation}
 
+En figure~\ref{fig_4_c} sont présentés les résultats de la mixture de gaussiennes avec covariance générale sur les mêmes données d'entraînement qu'en figure~\ref{tab_4_a}. La condition d'arrêt est atteinte quand la variation de la vraisemblance est inférieure à \(10^{-3}\). La même convention d'angle a été utilisé pour identifier les clusters délimités dans les zones semblables. La table regroupant les positions des centres est également présentée en table~\ref{tab_4_c}. On constate que les différences des positions des centres de masse entre le modèle isotropique et le modèle général sont largement supérieures, jusqu'à un facteur 4, comparées aux différences entre le passage du K-means à la mixture de gaussienne isotropique. La vraisemblance moyenne pour cette mixture de gaussiennes générales est de \((-2.327\pm0.000)~10^3\) et est inférieure à la vraisemblance obtenue pour la mixture de gaussiennes isotropiques. On constate, d'autre part, une très grande stabilité des positions des centres de masses, corroborée par la stabilité de la vraisemblance, pouvant mettre en évidence qu'un unique maximum a été atteint (qui n'est peut-être pas global). En l'occurence, sur ces données d'entraînement, les points en \((0,0\)) sont systématiquement attribués au cluster 1, du moins, en prenant le maximum des variables latentes comme attribution. Ce modèle permet de rendre compte des formes diverses des noeuds gaussiens, dont les distributions en masse sont tantôt allongés, tantôt regrouopées.
+
+\begin{table}[b]
+	\centering
+	\begin{tabular}{r|r|r|r}
+		\hline
+		Centroïde & \(\mu_x \pm \sigma_x\) & \(\mu_y \pm \sigma_y\) & \(\lVert\Delta\mu\text{(iso-gen)}\rVert\) \\\hline
+		1         & \(-3.060\pm 0.000\)    & \(-3.532\pm 0.000\)    & \(1.100\)                                 \\\hline
+		2         & \( -2.034 \pm 0.000\)  & \( 4.173\pm 0.000 \)   & \(0.420\)                                 \\\hline
+		3         & \( 3.981\pm 0.000\)    & \( 3.838\pm 0.005\)    & \(1.406\)                                 \\\hline
+		4         & \( 3.800\pm 0.000\)    & \( -3.775\pm 0.000 \)  & \(1.207\)                                 \\\hline
+	\end{tabular}
+	\caption{Positions des centres de masse de chaque gaussienne représentée en figure~\ref{fig_4_c}, et norme de la différence des positions moyennes des centres de masses pour la mixture isotropique et générale.}
+	\label{tab_4_c}
+\end{table}
+
+
+\begin{figure}[H]
+	\centering
+	\includegraphics[width = \textwidth]{4_c}
+	\caption{Visualisation du clustering obtenu par mixtures de gaussiennes avec covariance générale avec 9 initialisations par K-means des données d'entrainement. Chaque couleur représente un noeud gaussien. Le maxima des variables latentes de chaque point a été représenté, ainsi que la zone contenant \(90~\%\) de la masse de chaque gaussienne, en hachuré.}
+	\label{fig_4_c}
+\end{figure}
+
 \subsection{Comparaison des résultats}
 
+En figures~\refeq{fig_4_d_1},~\refeq{fig_4_d_2} sont présentés les résultats des deux mixtures de gaussiennes sur les données de test. On constate encore la grande stabilité en vraisemblance et en position des centre de masse, pour la mixture de gaussiennes générales, tandis qu'on observe toujours une instabilité en position et en forme des distribution pour la mixture de gaussiennes isotropiques. Pour cette dernière, la vraisemblance moyenne est de \((-2.593\pm0.037)~10^3\), inférieure à la vraisemblance de la mixture de gaussiennes générales, de \((-2.360\pm0.002)~10^3\), rendant bien compte de la modélisation plus adaptée du modèle général, avec des masses très allongées pour les clusters 1 et 3, qui ne sont pas bien rendues par des gaussiennes isotropiques.
+
+\begin{figure}[H]
+	\centering
+	\includegraphics[width = \textwidth]{4_d_1}
+	\caption{Visualisation du clustering obtenu par mixtures de gaussiennes avec des covariances isotropiques avec 9 initialisations par K-means des données de test. Chaque couleur représente un noeud gaussien. Le maxima des variables latentes de chaque point a été représenté, ainsi que la zone contenant \(90~\%\) de la masse de chaque gaussienne, en hachuré.}
+	\label{fig_4_d_1}
+\end{figure}
+
+
+\begin{figure}[H]
+	\centering
+	\includegraphics[width = \textwidth]{4_d_2}
+	\caption{Visualisation du clustering obtenu par mixtures de gaussiennes avec covariance générale avec 9 initialisations par K-means des données de test. Chaque couleur représente un noeud gaussien. Le maxima des variables latentes de chaque point a été représenté, ainsi que la zone contenant \(90~\%\) de la masse de chaque gaussienne, en hachuré.}
+	\label{fig_4_d_2}
+\end{figure}
 
 \end{document}
