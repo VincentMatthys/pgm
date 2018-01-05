@@ -1,0 +1,71 @@
+\usepackage[utf8]{inputenc}
+\usepackage[T1]{fontenc}
+\usepackage[french]{babel}
+
+% ------------------------- Color table ----------------------------------------
+\usepackage{multirow}
+\usepackage[table]{xcolor}
+\definecolor{maroon}{cmyk}{0,0.87,0.68,0.32}
+\usepackage{booktabs} % to make prettier tables (toprule, midrule, bottomrule)
+% ------------------------------------------------------------------------------
+
+\usepackage{amscd}
+\usepackage{amsthm}
+\usepackage{physics}
+\usepackage[left=2.2cm,right=2.2cm,top=2cm,bottom=2cm]{geometry}
+\usepackage{textcomp,gensymb} %pour le °C, et textcomp pour éviter les warning
+\usepackage{graphicx} %pour les images
+\usepackage{caption}
+\usepackage{subcaption}
+\usepackage[colorlinks=true,
+	breaklinks=true,
+	citecolor=blue,
+	linkcolor=blue,
+	urlcolor=blue]{hyperref} % pour insérer des liens
+\usepackage{epstopdf} %converting to PDF
+\usepackage[export]{adjustbox} %for large figures
+
+\usepackage{array}
+\usepackage{dsfont}% indicatrice : \mathds{1}
+
+
+% -------------------------- Mathematics ---------------------------------------
+\graphicspath{{images/}{../images/}} % For the images path
+% ------------------------------------------------------------------------------
+
+% -------------------------- Mathematics ---------------------------------------
+\usepackage{mathrsfs, amsmath, amsfonts, amssymb}
+\usepackage{bm}
+\usepackage{mathtools}
+\usepackage[Symbol]{upgreek} % For pi \uppi different from /pi
+\newcommand{\R}{\mathbb{R}} % For Real space
+
+% ------------------------------------------------------------------------------
+
+
+% -------------------------- Code format ---------------------------------------
+\usepackage[numbered,framed]{matlab-prettifier}
+\lstset{
+	style              = Matlab-editor,
+	basicstyle         = \mlttfamily,
+	escapechar         = '',
+	mlshowsectionrules = true,
+}
+% ------------------------------------------------------------------------------
+
+% ------------------------- Blbiographie --------------------------------------
+% \usepackage[backend=biber, style=ieee]{biblatex}
+% \addbibresource{biblio.bib}
+% ------------------------------------------------------------------------------
+
+
+\setcounter{tocdepth}{4} %Count paragraph
+\setcounter{secnumdepth}{4} %Count paragraph
+\usepackage{float}
+
+\usepackage{graphicx} % for graphicspath
+
+\usepackage{array,tabularx}
+\newcolumntype{L}[1]{>{\raggedright\let\newline\\\arraybackslash\hspace{0pt}}m{#1}}
+\newcolumntype{C}[1]{>{\centering\let\newline\\\arraybackslash\hspace{0pt}}m{#1}}
+\newcolumntype{R}[1]{>{\raggedleft\let\newline\\\arraybackslash\hspace{0pt}}m{#1}}
