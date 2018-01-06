@@ -62,6 +62,16 @@ On peut alors aussi exprimer \(p(q_t, q_{t+1} \mid \bm{u})\) en fonction de \(\a
 \end{equation}
 où \(A_{q_t, q_{t+1}} = p(q_{t+1} \mid q_t)\) et \(p(u_{t+1} \mid q_{t+1})\) suit une loi gaussienne.
 
+À des fins d'implémentation, on considèrera les logarithmes des \(\alpha\) et \(\beta\), de sorte que les formules de récursion peuvent se réecrire :
+\begin{equation}
+	\left\{
+	\begin{split}
+		\ln\alpha_t(q_t) &= \ln p(u_t \mid q_t) + \ln\sum_{q_{t-1}}\left(e^{\ln \alpha_{t-1}(q_{t-1})}A_{q_{t-1}, q_{t}}\right)\\
+		\ln\beta_t(q_t) &= \ln\sum_{q_{t+1}}\left(e^{\ln \beta_{t+1}(q_{t+1})}A_{q_{t}, q_{t+1}}p(y_{t+1}\mid q_{t+1})\right)\\
+	\end{split}
+	\right.
+\end{equation}
+
 \section{}
 
 \subsection{}
