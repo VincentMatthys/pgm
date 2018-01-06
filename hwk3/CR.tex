@@ -38,7 +38,10 @@ Le problème de l'inférence dans la chaine de Markov modélisée, à savoir le 
 		&= \frac{p(u_1,\dots,u_t \mid q_t)p(u_{t+1},\dots,u_T \mid q_t) p(q_t)}{p(\bm{u})} \quad u_1,\dots,u_t \indep u_{t+1},\dots,u_T \mid q_t\\
 		&= \frac{p(u_1,\dots,u_t, q_t)p(u_{t+1},\dots,u_T \mid q_t)}{p(\bm{u})}\\
 		&= \frac{\alpha_t(q_t)\beta_t(q_t)}{p(\bm{u})}\\
+		&= \frac{\alpha_t(q_t)\beta_t(q_t)}{\sum_{q_t}\alpha_t(q_t)\beta_t(q_t)}\\
+		&= \frac{\alpha_t(q_t)\beta_t(q_t)}{\sum_{q_T}\alpha_T(q_T)} \quad \text{puisque} \quad p(\bm{u}) = \sum_{q_T}p(q_T, \bm{u}) = \sum_{q_T}\alpha_T(q_T)\\
 	\end{split}
+	\label{filtering_eq}
 \end{equation}
 
 avec \(\alpha_t(q_t) = p(u_1,\dots,u_t, q_t)\) et \(\beta_t(q_t) = p(u_{t+1},\dots,u_T \mid q_t)\)
@@ -47,10 +50,6 @@ On peut alors aussi exprimer \(p(q_t, q_{t+1} \mid \bm{u})\) en fonction de \(\a
 
 \begin{equation}
 	\begin{split}
-		% p(q_t, q_{t+1} \mid \bm{u}) &= p(q_t \mid q_{t+1}, u_1, \dots, u_T)p(q_{t+1} \mid u_1, \dots, u_T)\\
-		% &= \frac{p(q_t, q_{t+1}, u_1, \dots, u_T)}{\sum_{q_t}p(q_t, q_{t+1}, u_1, \dots, u_T)}p(q_{t+1} \mid u_1, \dots, u_T)\\
-		% &= \frac{p(q_t, u_1, \dots, u_T)p(q_{t+1} \mid q_t)}{\sum_{q_t}p(q_t, u_1, \dots, u_T)p(q_{t+1} \mid q_t)}p(q_{t+1} \mid u_1, \dots, u_T)\\
-		% &= \\
 		p(q_t, q_{t+1} \mid \bm{u}) &= \frac{p(\bm{u} \mid q_t, q_{t+1}) p (q_t, q_{t+1})}{p(\bm{u})}\\
 		&= \frac{p(\bm{u} \mid q_t, q_{t+1}) p (q_{t+1} \mid q_t) p (q_t)}{p(\bm{u})}\\
 		&= \frac{p(u_1, \dots, u_t \mid q_t, q_{t+1}) p(u_{t+1}, \dots, u_T \mid q_t, q_{t+1}) p(q_{t+1} \mid q_t) p (q_t)}{p(\bm{u})}\\
@@ -62,7 +61,7 @@ On peut alors aussi exprimer \(p(q_t, q_{t+1} \mid \bm{u})\) en fonction de \(\a
 \end{equation}
 où \(A_{q_t, q_{t+1}} = p(q_{t+1} \mid q_t)\) et \(p(u_{t+1} \mid q_{t+1})\) suit une loi gaussienne.
 
-À des fins d'implémentation, on considèrera les logarithmes des \(\alpha\) et \(\beta\), de sorte que les formules de récursion peuvent se réecrire :
+À des fins d'implémentation, on considèrera les logarithmes des \(\alpha\) et \(\beta\), \(\tilde{\alpha}\) et \(\tilde{\beta}\) de sorte que les formules de récursion peuvent se réecrire :
 \begin{equation}
 	\left\{
 	\begin{split}
@@ -70,6 +69,24 @@ où \(A_{q_t, q_{t+1}} = p(q_{t+1} \mid q_t)\) et \(p(u_{t+1} \mid q_{t+1})\) su
 		\ln\beta_t(q_t) &= \ln\sum_{q_{t+1}}\left(e^{\ln \beta_{t+1}(q_{t+1})}A_{q_{t}, q_{t+1}}p(y_{t+1}\mid q_{t+1})\right)\\
 	\end{split}
 	\right.
+\end{equation}
+
+\begin{equation}
+	\left\{
+	\begin{split}
+		\tilde{\alpha}_t(q_t) &= \ln p(u_t \mid q_t) + \ln\sum_{q_{t-1}}\left(e^{\tilde{\alpha}_{t-1}(q_{t-1})}A_{q_{t-1}, q_{t}}\right)\\
+		\tilde{\beta}_t(q_t) &= \ln\sum_{q_{t+1}}\left(e^{\tilde{\beta}_{t+1}(q_{t+1})}A_{q_{t}, q_{t+1}}p(y_{t+1}\mid q_{t+1})\right)\\
+	\end{split}
+	\right.
+\end{equation}
+
+et que la tâche d'inférence dite de filtrage en équation~\eqref{filtering_eq} s'écrit :
+
+\begin{equation}
+	\begin{split}
+		\ln p(q_t \mid \bm{u}) &= \ln\alpha_t(q_t) + \ln\beta_t(q_t) - \ln \sum_{q_T}\alpha_T(q_T)\\
+		\ln p(q_t \mid \bm{u}) &= \tilde{\alpha}_t(q_t) + \tilde{\beta}_t(q_t) - \ln \sum_{q_T}e^{\tilde{\alpha}_T(q_T)}\\
+	\end{split}
 \end{equation}
 
 \section{}
