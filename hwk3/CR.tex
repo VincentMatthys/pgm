@@ -37,13 +37,13 @@ Le problème de l'inférence dans la chaine de Markov modélisée, à savoir le 
 		p(q_t \mid \bm{u}) &= \frac{p(\bm{u} \mid q_t)p(q_t)}{p(\bm{u})}\\
 		&= \frac{p(u_1,\dots,u_t \mid q_t)p(u_{t+1},\dots,u_T \mid q_t) p(q_t)}{p(\bm{u})} \quad u_1,\dots,u_t \indep u_{t+1},\dots,u_T \mid q_t\\
 		&= \frac{p(u_1,\dots,u_t, q_t)p(u_{t+1},\dots,u_T \mid q_t)}{p(\bm{u})}\\
-		&= \frac{\alpha(q_t)\beta(q_t)}{p(\bm{u})}\\
+		&= \frac{\alpha_t(q_t)\beta_t(q_t)}{p(\bm{u})}\\
 	\end{split}
 \end{equation}
 
-avec \(\alpha(q_t) = p(u_1,\dots,u_t, q_t)\) et \(\beta(q_t) = p(u_{t+1},\dots,u_T \mid q_t)\)
+avec \(\alpha_t(q_t) = p(u_1,\dots,u_t, q_t)\) et \(\beta_t(q_t) = p(u_{t+1},\dots,u_T \mid q_t)\)
 
-On peut alors aussi exprimer \(p(q_t, q_{t+1} \mid \bm{u})\) en fonction de \(\alpha\) et \(\beta\) :
+On peut alors aussi exprimer \(p(q_t, q_{t+1} \mid \bm{u})\) en fonction de \(\alpha_t\) et \(\beta_t\) :
 
 \begin{equation}
 	\begin{split}
@@ -57,7 +57,7 @@ On peut alors aussi exprimer \(p(q_t, q_{t+1} \mid \bm{u})\) en fonction de \(\a
 		&= \frac{p(u_1, \dots, u_t \mid q_t) p(u_{t+1}, \dots, u_T \mid q_{t+1}) p(q_{t+1} \mid q_t) p (q_t)}{p(\bm{u})}\\
 		&= \frac{p(u_1, \dots, u_t \mid q_t) p(u_{t+1} \mid q_{t+1}) p(u_{t+2}, \dots, u_T \mid q_{t+1}) p(q_{t+1} \mid q_t) p (q_t)}{p(\bm{u})}\\
 		&= \frac{p(u_1, \dots, u_t, q_t) p(u_{t+1} \mid q_{t+1}) p(u_{t+2}, \dots, u_T \mid q_{t+1}) p(q_{t+1} \mid q_t)}{p(\bm{u})}\\
-		&= \frac{\alpha(q_t) p(u_{t+1} \mid q_{t+1}) \beta(q_{t+1}) A_{q_t, q_{t+1}}}{p(\bm{u})}\\
+		&= \frac{\alpha_t(q_t) p(u_{t+1} \mid q_{t+1}) \beta_t(q_{t+1}) A_{q_t, q_{t+1}}}{p(\bm{u})}\\
 	\end{split}
 \end{equation}
 où \(A_{q_t, q_{t+1}} = p(q_{t+1} \mid q_t)\) et \(p(u_{t+1} \mid q_{t+1})\) suit une loi gaussienne.
