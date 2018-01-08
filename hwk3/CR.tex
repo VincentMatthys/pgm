@@ -30,7 +30,14 @@
 
 \section{HMM implementation}
 
-On notera \(\bm{u} = \{u_i\}_{i \in [\![1;T]\!]}\) et \(\bm{q} = \{q_i\}_{i \in [\![1;T]\!]}\)
+
+
+\setcounter{subsection}{-1}
+\subsection{Notations}
+
+On désignera par \(M\) le nombre d'états cachés (4 dans notre cas).
+On notera \(\bm{u} = \{u_t\}_{t \in [\![1;T]\!]}\), \(\bm{q} = \{q_t\}_{t \in [\![1;T]\!]}\), \(\bm{\theta} = \left(\pi, A, \bm{\mu}, \bm{\Sigma}\right)\) où \(\bm{\mu} = \{\mu_k\}_{k \in [\![1;M]\!]}\) et \(\bm{\Sigma} = \{\Sigma_k\}_{k \in [\![1;M]\!]}\).
+On utilisera également le \textit{one-hot encoding} sur \(\bm{q}\), de sorte que \(q_t^i\), variable binaire, représente la i\up{e} composante de \(q_t\).
 
 \subsection{}
 
@@ -105,7 +112,7 @@ et que la tâche d'inférence dite de \textit{smoothing} en équation~\eqref{fil
 
 \subsection{}
 
-En notant \(\bm{\theta} = \left(\pi, A, \bm{\mu}, \bm{\Sigma}\right)\) où \(\bm{\mu} = \{\mu_k\}_{k \in [\![1;4]\!]}\) et \(\bm{\Sigma} = \{\Sigma_k\}_{k \in [\![1;4]\!]}\), on exprime la log-vraisemblance incomplète de la manière suivante :
+On exprime la log-vraisemblance incomplète de la manière suivante :
 \begin{equation}
 	\begin{split}
 		\ell(\bm{\theta} ; \bm{u}) &= \ln \sum_{\bm{q}}p\left(\bm{q}, \bm{u} \mid \bm{\theta}\right)\\
@@ -119,8 +126,12 @@ En notant \(\bm{\theta} = \left(\pi, A, \bm{\mu}, \bm{\Sigma}\right)\) où \(\bm
 avec \(\ell_c(\bm{\theta} ; \bm{q}, \bm{u})\), log-vraisemblance complète, dont l'expression est la suivante :
 \begin{equation}
 	\begin{split}
-
+		\ell_c(\bm{\theta} ; \bm{q}, \bm{u}) &= \ln p\left(\bm{q}, \bm{u} \mid \bm{\theta}\right) \\
+		&= \sum_{t=1}^{T}\ln p(u_t \mid q_t, \bm{\mu}, \bm{\Sigma}) + \sum_{t=2}^T \sum_{i = 1}^{M} \sum_{j = 1}^{M} q_{t-1}^i q_t^j \ln A_{ij} + \sum_{i = 1}^M q_1^i \ln \pi_i\\
+		&= 	\sum_{t=1}^{T}\sum_{k=1}^M q_t^k \left(-\ln2\pi -\frac{1}{2}\ln|\Sigma_k| - \frac{1}{2}(u_t - \mu_k)^{\intercal}\Sigma_k^{-1}(u_t - \mu_k)\right)\\
+		&+ \sum_{t=2}^T \sum_{i = 1}^{M} \sum_{j = 1}^{M} q_{t-1}^i q_t^j \ln A_{ij} + \sum_{i = 1}^M q_1^i \ln \pi_i\\
 	\end{split}
+	\label{eq_llh_c}
 \end{equation}
 
 On a donc une borne inférieure de la log-vraisemblance incomplète, \(\mathcal{L}(r, \bm{\theta}, \bm{u})\). L'algorithme EM consiste en une montée alternée de cette borne inférieure par rapport à \(r\) et \(\bm{\theta}\). En choisissant \(r(\bm{q} \mid \bm{u}) = p(\bm{q} \mid \bm{u}, \bm{\theta})\), on maximise celle-ci, de sorte que les deux étapes de l'algorithme se résument de la manière suivante :
@@ -129,10 +140,54 @@ On a donc une borne inférieure de la log-vraisemblance incomplète, \(\mathcal{
 		E-step \quad r^{(s+1)} &= \operatorname{arg}\max_{r} \mathcal{L}(r, \bm{\theta}^{(s)}, \bm{u}) = p(\bm{q} \mid \bm{u}, \bm{\theta}^{(s)})\\
 		M-step \quad \bm{\theta}^{(s+1)} &= \operatorname{arg}\max_{\bm{\theta}} \mathcal{L}(r^{(s+1)}, \bm{\theta}, \bm{u}) = \operatorname{arg}\max_{\bm{\theta}} \mathbb{E}_{r^{(s+1)}}(\ell_c(\bm{\theta} ; \bm{q}, \bm{u}))\\
 	\end{split}
+	\label{eq_EM_steps}
 \end{equation}
 où \(s\) dénote le nombre d'itérations de l'algorithme.
 
+D'après l'équation~\eqref{eq_llh_c}, on observe que \(m_{ij} \coloneqq \sum_{t=2}^T q_{t-1}^i q_t^j\) est la statistique exhaustive pour \(A_{ij}\), que \(q_1^i\) est la statistique exhaustive pour \(\pi_i\). Les estimateurs de maximum de log-vraisemblance complète pour \(A\) et \(\pi\) sont donc :
 
+\begin{align}
+	\widehat{\pi}_{i} & = q_1^i                              \label{eq_pi_MLE}  \\
+	\widehat{A}_{ij}  & = \frac{m_{ij}}{\sum_{k = 1}^M m_{ik}} \label{eq_A_MLE}
+\end{align}
+D'autre part, grâce aux calculs déjà effectués pour les estimateurs de vraisemblance de la mixture de gaussiennes, on obtient les estimateurs de log-vraisemblance complète des paramètres d'émission :
+\begin{align}
+	\widehat{\mu_k}    & = \frac{\sum_{t = 1}^T q_{t}^k u_t}{\sum_{t = 1}^T q_{t}^k}                                                     \\
+	\widehat{\Sigma_k} & = \frac{\sum_{t = 1}^T q_t^k\left(u_t - \mu_k\right)\left(u_t - \mu_k\right)^{\intercal}}{\sum_{t = 1}^T q_t^k}
+\end{align}
+
+Ces estimateurs doivent être pris sous l'espérance précise obtenue lors de l'étape E de l'algorithme EM, donnée par l'équation~\eqref{eq_EM_steps}, afin que la maximisation de la log-vraisemblance complète induise une augmentation de la log-vraisemblance incomplète lors de l'itération \(s + 1\).
+
+En reprenant l'estimateur de \(\pi\) obtenu en équation~\eqref{eq_pi_MLE}, on obtient l'estimateur à l'itération \((s_1)\) :
+\begin{equation}
+	\begin{split}
+		\widehat{\pi_{i}}^{(s + 1)} &= \mathbb{E}_{\bm{q} \mid \bm{u}, \bm{\theta}^{(s)}}[q_1^i] \\
+		&= \mathbb{E}_{q_1 \mid \bm{u}, \bm{\theta}^{(s)}}[q_1^i] \\
+		&= p(q_1^i = 1 \mid \bm{u}, \bm{\theta}^{(s)}) \coloneqq \gamma_1^{i, (s+1)}
+	\end{split}
+\end{equation}
+
+En reprenant l'estimateur de \(A_{ij}\) obtenue en équation~\eqref{eq_A_MLE}, il faut déterminer \(\mathbb{E}_{\bm{q} \mid \bm{u}, \bm{\theta}^{(s)}}[m_{ij}]\). On a :
+\begin{equation*}
+	\begin{split}
+		\mathbb{E}_{\bm{q} \mid \bm{u}, \bm{\theta}^{(s)}}[m_{ij}] &= \sum_{t=2}^T \mathbb{E}_{\bm{q} \mid \bm{u}, \bm{\theta}^{(s)}}\left[q_{t-1}^i q_t^j\right]\\
+		&= \sum_{t=2}^T p\left(q_{t-1}^i = 1, q_t^j = 1 \mid \bm{u}, \bm{\theta}^{(s)}\right)\\
+		&\coloneqq \sum_{t=2}^T \xi^{ij, (s+1)}_{t-1, t}
+	\end{split}
+\end{equation*}
+D'où l'estimateur à l'itération \((s+1)\) pour \(A\) :
+\begin{equation}
+	\widehat{A}_{ij}^{(s+1)} = \frac{\sum_{t=2}^T \xi^{ij, (s+1)}_{t-1, t}}{\sum_{k = 1}^M\sum_{t=2}^T \xi^{ik, (s+1)}_{t-1, t}} = \frac{\sum_{t=2}^T \xi^{ij, (s+1)}_{t-1, t}}{\sum_{t=2}^T \gamma^{i, (s+1)}_{t-1}}
+\end{equation}
+
+De la même façon, on obtient les estimateurs à l'itération \((s+1)\) pour les \(\mu_k\) et \(\Sigma_k\) :
+
+\begin{equation}
+	\begin{aligned}
+		\widehat{\mu_k}^{(s+1)}    & = \frac{\sum_{t = 1}^T \gamma_{t}^{k,(s+1)} u_t}{\sum_{t = 1}^T \gamma_{t}^{k,(s+1)}} \quad \forall k \in [\![1;M]\!]                                                         \\
+		\widehat{\Sigma_k}^{(s+1)} & = \frac{\sum_{t = 1}^T \gamma_{t}^{k,(s+1)}\left(u_t - \mu_k\right)\left(u_t - \mu_k\right)^{\intercal}}{\sum_{t = 1}^T \gamma_{t}^{k,(s+1)}} \quad \forall k \in [\![1;M]\!] \\
+	\end{aligned}
+\end{equation}
 
 \section{}
 
