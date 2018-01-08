@@ -100,13 +100,19 @@ et que la tâche d'inférence dite de \textit{smoothing} en équation~\eqref{fil
 	\end{split}
 \end{equation}
 
+La tâche d'inférence dite de \textit{filtering} est également ajoutée en normalisant \(\alpha_t\) :
+\begin{equation*}
+	\alpha_t^{\text{norm}}(q_t) = p(q_t \mid u_1, \dots, u_t) = \frac{\alpha_t(q_t)}{\sum_{q_t}\alpha_t(q_t)}
+\end{equation*}
+et est disponible par le calcul des \(\alpha_{\text{norm}}\) dans le code fourni.
+
 \subsection{}
 
-\begin{figure}
+\begin{figure}[H]
 	\centering
 	\includegraphics[width = 1.0\textwidth]{2_smoothing.eps}
-	\caption{Filtering result for the first 100 datapoints}
-	\label{fig_2_filtering}
+	\caption{Smoothing result for the first 100 datapoints}
+	\label{fig_2_smoothing}
 \end{figure}
 
 
@@ -189,133 +195,21 @@ De la même façon, on obtient les estimateurs à l'itération \((s+1)\) pour le
 	\end{aligned}
 \end{equation}
 
-\section{}
-
-\subsection{}
-
+L'implémentation du calcul des \(\gamma\) et \(\xi\) est succintement détaillée et fait intervenir le calcul des \(\alpha_{\text{norm}}\) du problème de \textit{filtering}.
 \begin{equation}
 	\begin{split}
-		X \indep Y \mid Z &\Leftrightarrow p(x, y \mid z) = p(x \mid z) p(y \mid z) \qquad \forall x, y, z \quad  \text{t.q.} \quad p(z) > 0 \\
-		&\Leftrightarrow p(x, y, z) = p(x \mid z) p(y \mid z) p(z)\qquad \forall x, y, z \quad  \text{t.q.} \quad p(z) > 0 \\
-		&\Leftrightarrow \frac{p(x, y ,z)}{p(y , z)} = p(x \mid z) \frac{p(y \mid z) p(z)}{p(y, z)} \qquad \forall x, y, z \quad  \text{t.q.} \quad p(y, z) > 0 \\
-		&\Leftrightarrow p(x \mid y, z) = p(x \mid z) \qquad \forall x, y, z \quad  \text{t.q.} \quad p(y, z) > 0 \\
+		\gamma_t(q_t) &= p(q_t \mid u_1, \dots, u_T)\\
+		&= \sum_{q_{t+1}}p(q_t, q_{t+1} \mid u_1, \dots, u_T)\\
+		&= \sum_{q_{t+1}} \frac{\alpha_t(q_t)A_{q_t, q_{t+1}}}{\sum_{q_t}\alpha_t(q_t)A_{q_t, q_{t+1}}}\gamma_{t+1}(q_{t+1})\\
 	\end{split}
 \end{equation}
 
-\subsection{}
-
-Etant donné le modèle graphique orienté \(G\) :
-
 \begin{equation}
 	\begin{split}
-		p \in \mathcal{L}(G) &\Leftrightarrow \forall x, y, z, t \quad p(x, y, z, t) = p(x)p(y)p(z \mid  x, y) p(t \mid z)
+		\xi_{t,t+1}(q_t, q_{t+1}) &= p(q_t, q_{t+1} \mid \bm{u})\\
+		&= \frac{\alpha_t(q_t)p(u_{t+1} \mid q_{t-1})\gamma_{t+1}(q_{t+1})A_{q_t, q_{t+1}}}{\alpha_{t+1}(q_{t+1})}\\
 	\end{split}
 \end{equation}
 
 
-
-\subsection{}
-
-\textit{Non traité}.
-
-\section{Distributions factorisant sur un graphe}
-
-\subsection{}
-\textit{Non traité}.
-
-\subsection{}
-\textit{Non traité}.
-
-\clearpage
-
-\section{Entropie et information mutuelle}
-
-\subsection{Entropie}
-
-\subsubsection{}
-
-Avec les conventions définies :
-
-\begin{equation}
-	\begin{split}
-		p_X(x) &= \mathbb{P}(X = x) < 1 \Rightarrow p_X(x)\log(p_X(x)) < 0 \Rightarrow -\sum_{x \in \mathcal{X}} p_X(x)\log(p_X(x)) = H(X) \geq 0 \\
-		H(X) &= 0 \Rightarrow \forall x \in \mathcal{X},\, p_X(x)\log(p_X(x)) = 0 \Rightarrow \forall x \in \mathcal{X},\, p_X(x) = 1 \Rightarrow \text{X is constant with probability 1}
-	\end{split}
-	\label{eq_31a}
-\end{equation}
-
-\subsubsection{}
-
-Par définition de la Kullback-Leibler divergence il vient :
-
-\begin{equation}
-	\begin{split}
-		D(p_X \parallel q) &= \sum_{x \in \mathcal{X}}p_X(x)\log\frac{p_X(x)}{q(x)}\\
-		&= -\sum_{x \in \mathcal{X}}p_X(x)\log q(x) - H(X) \\
-		&= -\sum_{x \in \mathcal{X}}p_X(x)\log\frac{1}{|X|} - H(X) \quad \text{puisque} \quad \forall x \in \mathcal{X},\, q(x) = \frac{1}{k} = \frac{1}{k}\\
-		&= \log k\sum_{x \in \mathcal{X}}p_X(x) - H(X)\\
-		&= \log k - H(X) \quad \text{car} \quad \sum_{x \in \mathcal{X}}p_X(x) = 1
-	\end{split}
-	\label{eq_31b}
-\end{equation}
-
-\subsubsection{}
-Avec les équations~\eqref{eq_31a} et \eqref{eq_31b}, on a directement
-
-\begin{equation}
-	\log k - H(X) = D(p_X \parallel q) \leq \log k
-\end{equation}
-
-\subsection{Information mutuelle}
-
-\subsubsection{}
-Par définition de l'information mutuelle :
-
-\begin{equation}
-	\begin{split}
-		I(X_1, X_2) &= \sum_{(x_1,x_2)\in\mathcal{X}_1\times\mathcal{X}_2} p_{1, 2}(x_1,x_2) \log \frac{p_{1, 2}(x_1,x_2)}{p_1(x_1)\,p_2(x_2)}\\
-		I(X_1, X_2) &= D(p_{1, 2} \parallel p_1p_2) \quad \text{par définition de la Kullback-Leibler divergence}
-	\end{split}
-\end{equation}
-
-Or la Kullback-Leibler divergence est positive pour toute paire \((p_{1, 2}, p_1p_2)\) de distributions, donc \(I(X_1, X_2) \geq 0\).
-
-\subsubsection{}
-
-Toujours avec la défintion de l'information mutuelle :
-
-\begin{equation}
-	\begin{split}
-		I(X_1, X_2) &= \sum_{(x_1,x_2)\in\mathcal{X}_1\times\mathcal{X}_2} p_{1, 2}(x_1,x_2) \log \frac{p_{1, 2}(x_1,x_2)}{p_1(x_1)\,p_2(x_2)}\\
-		I(X_1, X_2) &= \sum_{(x_1,x_2)\in\mathcal{X}_1\times\mathcal{X}_2} p_{1, 2}(x_1,x_2) \log p_{1, 2}(x_1,x_2)\\ &- \sum_{(x_1,x_2)\in\mathcal{X}_1\times\mathcal{X}_2} p_{1, 2}(x_1,x_2) \log \left(p_1(x_1)p_2(x_2)\right)\\
-		I(X_1, X_2) &= -H(X_1, X_2)\\
-		&- \sum_{x_1 \in\mathcal{X}_1} \left(\sum_{x_2 \in\mathcal{X}_2}p_{1, 2}(x_1,x_2)\right) \log \left(p_1(x_1)\right)\\
-		&- \sum_{x_2 \in\mathcal{X}_2} \left(\sum_{x_1 \in\mathcal{X}_1}p_{1, 2}(x_1,x_2)\right) \log \left(p_2(x_2)\right)\\
-		I(X_1, X_2) &= -H(X_1, X_2)\\
-		&- \sum_{x_1 \in\mathcal{X}_1} p_{1}(x_1) \log \left(p_1(x_1)\right)\\
-		&- \sum_{x_2 \in\mathcal{X}_2} p_{2}(x_2) \log \left(p_2(x_2)\right)\\
-		I(X_1, X_2) &= H(X_1) + H(X_2) - H(X_1, X_2)
-	\end{split}
-	\label{eq_32b}
-\end{equation}
-
-Et ainsi l'information mutuelle peut s'écrire uniquement à partir des entropies de \(X_1\), \(X_2\) et de \((X_1, X_2)\).
-
-\subsubsection{}
-
-D'après l'éqiation~\eqref{eq_32b}, on peut réecrire :
-
-\begin{equation}
-	\begin{split}
-		H(X_1, X_2) - \left(H(X_1) + H(X_2)\right) &=  - I(X_1, X_2)\\
-		H(X_1, X_2) - \left(H(X_1) + H(X_2)\right) &\leq 0 \quad \text{puisque},\, I(X_1, X_2) \geq 0
-	\end{split}
-	\label{eq_32c}
-\end{equation}
-
-D'après l'équation~\eqref{eq_32c}, pour \(p_1\) et \(p_2\) données, l'entropie maximale correspond à \(I(X_1, X_2) = 0\), c'est-à-dire \(D(p_{1, 2} \parallel p_1p_2) = 0\) d'après l'équation~\eqref{eq_31b}. Or la Kullback-Leibler divergence s'anulle si et seulement si les distributions sont identiques. On a alors \(p_{1,2} = p_1p_2\), ce qui correspond à \(X_1 \indep X_2\).
-
-\section{Gaussian Mixtures}
-
-\subsection{K-means}
 \end{document}
