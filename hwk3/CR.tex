@@ -6,7 +6,11 @@
 \title{Math M2 Probabilistic graphical models 2017/2018}
 \author{Vincent Matthys}
 \graphicspath{{images/}}
+% http://www.cedar.buffalo.edu/~srihari/CSE574/Chap13/Ch13.2-HiddenMarkovModels.pdf
+% https://www.cs.cmu.edu/~epxing/Class/10701-08s/recitation/em-hmm.pdf
 % ------------------------------------------------------------------------------
+
+
 
 \begin{document}
 \begin{tabularx}{0.8\textwidth}{@{} l X r @{} }
@@ -80,7 +84,7 @@ où \(A_{q_t, q_{t+1}} = p(q_{t+1} \mid q_t)\) et \(p(u_{t+1} \mid q_{t+1})\) su
 	\right.
 \end{equation}
 
-et que la tâche d'inférence dite de filtrage en équation~\eqref{filtering_eq} s'écrit :
+et que la tâche d'inférence dite de \textit{smoothing} en équation~\eqref{filtering_eq} s'écrit :
 
 \begin{equation}
 	\begin{split}
@@ -88,6 +92,47 @@ et que la tâche d'inférence dite de filtrage en équation~\eqref{filtering_eq}
 		\ln p(q_t \mid \bm{u}) &= \tilde{\alpha}_t(q_t) + \tilde{\beta}_t(q_t) - \ln \sum_{q_T}e^{\tilde{\alpha}_T(q_T)}\\
 	\end{split}
 \end{equation}
+
+\subsection{}
+
+\begin{figure}
+	\centering
+	\includegraphics[width = 1.0\textwidth]{2_smoothing.eps}
+	\caption{Filtering result for the first 100 datapoints}
+	\label{fig_2_filtering}
+\end{figure}
+
+
+\subsection{}
+
+En notant \(\bm{\theta} = \left(\pi, A, \bm{\mu}, \bm{\Sigma}\right)\) où \(\bm{\mu} = \{\mu_k\}_{k \in [\![1;4]\!]}\) et \(\bm{\Sigma} = \{\Sigma_k\}_{k \in [\![1;4]\!]}\), on exprime la log-vraisemblance incomplète de la manière suivante :
+\begin{equation}
+	\begin{split}
+		\ell(\bm{\theta} ; \bm{u}) &= \ln \sum_{\bm{q}}p\left(\bm{q}, \bm{u} \mid \bm{\theta}\right)\\
+		&= \ln \sum_{\bm{q}}r(\bm{q} \mid \bm{u}) \frac{p\left(\bm{q}, \bm{u} \mid \bm{\theta}\right)}{r(\bm{q} \mid \bm{u})} \quad \text{pour r quelconque}\\
+		&\ge \sum_{\bm{q}}r(\bm{q} \mid \bm{u}) \ln \frac{p\left(\bm{q}, \bm{u} \mid \bm{\theta}\right)}{r(\bm{q} \mid \bm{u})} \quad \text{par l'inégalité de Jensen}\\
+		&\ge \mathbb{E}_{r}[\ell_c(\bm{\theta} ; \bm{q}, \bm{u})]- H(r(\bm{q} \mid \bm{u})) = \mathcal{L}(r, \bm{\theta}, \bm{u})\\
+	\end{split}
+\end{equation}
+
+
+avec \(\ell_c(\bm{\theta} ; \bm{q}, \bm{u})\), log-vraisemblance complète, dont l'expression est la suivante :
+\begin{equation}
+	\begin{split}
+
+	\end{split}
+\end{equation}
+
+On a donc une borne inférieure de la log-vraisemblance incomplète, \(\mathcal{L}(r, \bm{\theta}, \bm{u})\). L'algorithme EM consiste en une montée alternée de cette borne inférieure par rapport à \(r\) et \(\bm{\theta}\). En choisissant \(r(\bm{q} \mid \bm{u}) = p(\bm{q} \mid \bm{u}, \bm{\theta})\), on maximise celle-ci, de sorte que les deux étapes de l'algorithme se résument de la manière suivante :
+\begin{equation}
+	\begin{split}
+		E-step \quad r^{(s+1)} &= \operatorname{arg}\max_{r} \mathcal{L}(r, \bm{\theta}^{(s)}, \bm{u}) = p(\bm{q} \mid \bm{u}, \bm{\theta}^{(s)})\\
+		M-step \quad \bm{\theta}^{(s+1)} &= \operatorname{arg}\max_{\bm{\theta}} \mathcal{L}(r^{(s+1)}, \bm{\theta}, \bm{u}) = \operatorname{arg}\max_{\bm{\theta}} \mathbb{E}_{r^{(s+1)}}(\ell_c(\bm{\theta} ; \bm{q}, \bm{u}))\\
+	\end{split}
+\end{equation}
+où \(s\) dénote le nombre d'itérations de l'algorithme.
+
+
 
 \section{}
 
