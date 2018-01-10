@@ -1,0 +1,213 @@
+\documentclass[12pt,a4paper,onecolumn]{article}
+\input{packages}
+\input{macros}
+
+% ------------------------ General informations --------------------------------
+\title{PGM report \\ Latent Dirichlet Allocation}
+\author{Quentin LEROY, Vincent MATTHYS, Bastien PONCHON}
+\date{December 2017}
+%https://www.youtube.com/watch?v=2pEkWk-LHmU
+% ------------------------------------------------------------------------------
+
+
+\begin{document}
+
+\begin{center}
+
+	\rule[11pt]{5cm}{0.5pt}
+
+	\textbf{\Large \textsc{PGM Report} \\ Latent Dirichlet Allocation}
+	\vspace{0.5cm}
+
+	Quentin LEROY, Vincent MATTHYS, Bastien PONCHON\\
+	\{qleroy,vmatthys,bponchon\}@ens-paris-saclay.fr
+
+	\rule{5cm}{0.5pt}
+
+	\vspace{1cm}
+\end{center}
+
+
+The paper we are working on is \textbf{Latent Dirichlet Allocation}~\cite{lda_2003}.
+
+
+\section{Model}
+
+
+
+\begin{figure}
+	\centering
+	\begin{tikzpicture}[x=1.7cm,y=1.1cm]
+		% Nodes
+
+		\node[obs]                   (w)      {$w_n$} ; %
+		\node[latent, left=of w]    (z)      {$z_n$} ; %
+		\node[latent, left=of z]    (theta)  {$\theta_d$}; %
+		\node[latent, left=of theta] (alpha) {$\alpha$};
+
+
+		% Factors
+		\factor[left=of w]     {w-f}     {below:Multi} {} {} ; %
+		\factor[left=of z]     {z-f}     {below:Multi} {} {} ; %
+		\factor[left=of theta] {theta-f} {below:Dir} {} {} ; %
+
+		\node[latent, above=of z] (beta)  {$\beta_k$}; %
+
+		\factoredge {alpha} {theta-f} {theta} ; %
+		\factoredge {theta}  {z-f}     {z} ; %
+		\factoredge {beta}   {w-f}   {w} ; %
+
+		\gate {w-gate} {(w-f)(w-f-caption)} {z}
+
+		\plate[inner sep = 0.35cm, xshift = -0.1cm] {plate1} {(w)(w-gate)(w)(z-f)(w-f-caption)} {$N$};
+		\plate {plate2} {(plate1)(theta)(theta-f)(theta-f-caption)} {$D$};
+		{
+		{\tikzset{plate caption/.append style={right=0.2cm of #1.south east}}
+		\plate[inner sep = 0.30cm]{plate3}{(beta)}{$K$};}
+		}
+
+
+	\end{tikzpicture}
+
+	\caption{}
+	\label{}
+\end{figure}
+
+%
+% \begin{figure}[H]
+% 	\centering
+% 	\tikz{ %
+% 		\node[latent] (alpha) {$\alpha$} ; %
+% 		\node[latent, right=of alpha] (theta) {$\theta_d$} ; %
+% 		\node[latent, right=of theta] (z) {$z_n$} ; %
+% 		\node[latent, above=of z] (beta) {$\beta$} ; %
+% 		\node[obs, right=of z] (w) {$w_n$} ; %
+% 		\plate[inner sep=0.25cm, xshift=-0.12cm, yshift=0.12cm] {plate1} {(z) (w)} {N}; %
+% 		\plate[inner sep=0.25cm, xshift=-0.12cm, yshift=0.12cm] {plate2} {(theta) (plate1)} {M}; %
+% 		\plate[inner sep=0.25cm, xshift=-0.12cm, yshift=0.12cm]{plate3}{(beta)}{K};
+% 		\edge {alpha} {theta} ; %
+% 		\edge {theta} {z} ; %
+% 		\edge {z,beta} {w} ; %
+% 	}
+% \end{figure}
+
+Latent Dirichlet Allocation is a probabilistic model for corpora of text documents or other collections of discrete data. We will use the language of text in this review.
+
+It includes two level of latent variables: the so-called topics $\mathbf{z}$ at word-level (drawn one for each word) and the topic mixtures $\theta$ at document-level (drawn once for each document). Observed variables are the words $w$. The parameters of the model are of two kinds: $\alpha$ that governs the distributions of the topic mixtures $\theta_d$ ($d$ indexes the documents) through a Dirichlet distribution and $\beta$ that governs the distributions of words $w_n$ conditioned on a topic $z_n$ ($n$ indexes the words) through a categorical distribution. For a fixed vocabulary size $V$ (range of values that words $w$ can take) and a fixed number of topics $k$ (range of values that topics $z$ can take) $\alpha$ is a $k$-vector and $\beta$ is a $k \times V$ matrix. Words and topics are discrete variables taking respectively $V$ and $K$ values and as such are classically encoding as one-hot vectors.
+
+
+A document is assumed to be a "bag of words" that is to say that the order of the words in the document does not matter. In a statistical point of view, words $\mathbf{w}=\{w_1,\dots,w_N\}$ being considered as random variables, it amounts to stating infine exchangeability of the collection of words $\mathbf{w}$. Actually the topics $\mathbf{z}$ are similarly exchangeable with a document. De Finetti representation theorem therefore concludes that the distribution $p(\mathbf{\mathbf{w}, \mathbf{z}})$ is a mixture over a latent parameter $\theta$, that is that we draw a parameter $\theta$ and then all the variables are drawn independently conditioned on this parameter. The joint distribution over topics and words of one document of $N$ words reads:
+$$p(\mathbf{w}, \mathbf{z})=\int \Big(\prod_{n=1}^N p(z_n|\theta)p(w_n|z_n)\Big)p(\theta)d\theta$$
+LDA makes use of the exchangeability of the words and topics within documents and this representation of the joint distribution over words and topics. Moreover it adds a Dirichlet prior over $\theta$ and model the conditional distributions $p(w_n|z_n)$ as multinomials parameterized by $\beta$ as the graphical models shows in Figure 1 as well as the following N-word document generation procedure makes clear.
+
+\begin{algorithm}
+	\begin{algorithmic}
+		\State $\theta \sim Dirichlet(\alpha)$
+		\For{$n=1:N$}
+		\State $\text{Choose topic } z_n \sim Categorical(\theta)$
+		\State $\text{Choose word }w_n \sim Categorical(\beta_{z_n}), \text{ that is to say }p(w_n^j=1|z_n^i=1,\beta)=\beta_{ij}$
+		\EndFor
+	\end{algorithmic}
+	\caption{N-word document generation}
+	\label{alg:doc}
+\end{algorithm}
+
+%\singlefig{fig/lda}{1}{Graphical model representation of LDA}{fig:lda}
+%\singlefig{fig/variational}{0.5}{Graphical model representation of the variational distribution }{fig:variational}
+
+\doublefig{
+	\subfig{fig/lda}{1}{Graphical model representation of LDA}{fig:lda}}
+{\subfig{fig/variational}{0.5}{Graphical model representation of the variational distribution in Section Inference}{fig:variational}
+}{}{}
+
+
+In Figure ~\ref{fig:lda} $M$ is the number of documents and $N$ the number of words. It should be again emphasized that $\theta$ and $\mathbf{z}$ are latent variables while $\alpha$ and $\beta$ are parameters of the model that are to be learned from data. Figure ~\ref{fig:sub-lda} shows an example with $M=2$ documents and $N=2$ words per document with the plates unfolded.
+
+Latent variable models usually takes the advantage of the simplicity and flexibility of introducing unobserved variable to cut modeling into subproblems. For example Gaussian Mixture Models introduce a "soft-assignment" variable that permit to group observed variables and model according to the group. In the LDA model at the word-level the topic latent variable $z$ reflects the intuitive idea that words are drawn accoding to a fix number of different discrete processes, the number of topics. The topic mixture $\theta$ sampled once per document is another latent variable that governs the distribution over topics for one document, the topic mixture at document-level favors certain topics over other. One word $w$ "belongs" to a topic through $z$ and the topic $z$ "belongs" to a topic mixture through $\theta$.
+
+LDA has conceptual advantages over previously applied mixture models for text data. These advantages will not be covered in this review.
+
+
+\section{Inference}
+\label{sec:inference}
+
+The inferential problem tackled in the original article is that of computing the conditional distribution of the hidden variables ($\theta$ and $\mathbf{z}$):
+
+$$p(\theta, \mathbf{z} \mid \mathbf{w}, \alpha, \beta) = \frac{p(\theta, \mathbf{z}, \mathbf{w} \mid \alpha, \beta)}{p(\mathbf{w} \mid \alpha, \beta)}$$
+
+However it is intractable since computing the marginal $p(\mathbf{w} \mid \alpha, \beta)$ involves integrating out the topic mixture $\theta$ and summing over the topics $\mathbf{z}$ a quantity coupling $\theta$ and $\beta$. The nodes $w$ in Figure~\ref{fig:lda} have several parents that need to be marginalizing out ($\theta$ and $\beta$), this makes the marginal intractable. In general when we are presented with a non-tree like graphical model we have to resort to approximation techniques; sum-product algorithm for exact inference does not work.
+
+We wish to approximate the intractable $p(\theta, \mathbf{z} \mid \mathbf{w}, \alpha, \beta)$. Two kinds of approximate inference techniques can be undertaken to solve this problem: stochastic techniques involving sampling such as MCMC, and variational inference which is deterministic. Variational inference also comes with several flavors. In general it consists of approaching the target distribution with an adujstable lower-bound taken from a restricted family of distributions, for example distributions that factorizes (mean field).
+
+In our case the family considered is derived from simplifications of the original graphical model of Figure ~\ref{fig:lda}. The authors propose the representation given in Figure ~\ref{fig:variational}. The variational parameters are $\phi$ and $\gamma$ and the variational distributions associated with this graphical model indexed by these parameters read:
+
+\begin{equation*}
+	q(\theta, \mathbf{z}|\phi, \gamma) = q(\theta|\gamma)\prod_{n=1}^N q(z_n|\phi_n)
+\end{equation*}
+
+
+$\gamma$ is the parameter for the Dirichlet distribution followed by $\theta$ while $\phi$ is the parameter for the multinomial distribution followed by $z_n$. Similarly to the derivation of the EM algorithm, finding a lower-bound on $p(\mathbf{w}|\alpha, \beta)$ involves using Jensen's inequality on the expression $\log (p(\mathbf{w}|\alpha, \beta))$ and just like we have seen in the course the margin of the inequality :
+
+\begin{equation}
+	\log p(\mathbf{w}|\alpha, \beta) \geq \mathbb{E}_q[\log p(\theta, \mathbf{z}, \mathbf{w}|\alpha, \beta)] - \mathbb{E}_q[\log q(\theta,\mathbf{z}|\gamma, \phi)] \label{eq_llh}
+\end{equation}
+
+
+is the Kullback-Leibler divergence between the variational distribution $q(\theta, \mathbf{z}|\phi, \gamma)$ and the target distribution $p(\theta, \mathbf{z}|\mathbf{w}|\alpha, \beta)$: $\mathcal{D}(q(\theta, \mathbf{z}|\gamma, \phi)||p(\theta, \mathbf{z}, \alpha, \beta))$. Thus, maximizing the lower-bound is equivalent to minimizing the KL divergence so that the variational distribution adjusts to the target p as desired. The authors show how to maximize the right-side of the inequality by optimizing with respect to $\phi$ then with respect to $\gamma$ and it follows two update equations of $\phi$
+and $\gamma$ that are coupled so are solved with an iterative fixed point algorithm. It leads to the following E-step:
+
+\begin{equation*}
+	(\gamma_d, \phi_d) = \operatorname{arg}\max_{(\bm{\gamma}, \bm{\phi})} \mathbb{E}_{q}\left[\log p(\bm{\theta},\bm{z}, \bm{w}_d \mid \bm{\alpha}, \bm{\beta})\right] - \mathbb{E}_{q}\left[\log q(\bm{\theta}, \bm{z} \mid \gamma, \phi)\right]              \tag{E-step}
+\end{equation*}
+
+
+\section{Parameters estimation}
+
+%  Before being able to do inference on new documents, we have to train the model on our corpus of documents, by finding the parameters $\alpha$ and $\beta$ that maximize the marginal log likelihood of the data $\sum_{d=1}^M log(p(\bm{w}_d|\alpha, \beta)$. But as stated above we have a lower bound on this likelihood, depending on $\alpha$ and $\beta$ and on (approximate) variational distributions of parameters $\gamma_d$ and $\phi_d$ (for each document $\bm{w}_d$). We can therefore use a variational EM algorithm to estimate $\alpha$ and $\beta$.
+%  \begin{enumerate}
+%      \item In the E-step we maximize our lower bound with regard to $\gamma_d$ and $\phi_d$ for each $d\in [1, D]$ as presented in the \textit{Inference} section.
+%      \item In the M-step, we maximize the resulting lower bound with respect to $\alpha$ and $\beta$, for which we have a closed form depending on the $\gamma_d$ and $\phi_d$.
+%  \end{enumerate}
+
+Considering the entire set of documents \(\mathbb{D} = (\bm{w_1}, \dots, \bm{w_M})\), with the hypothesis of exchangeability of documents, the likelihood~\eqref{eq_llh} can be summed for each document, leading to the following M-step for the document \(\bm{w_d}\):
+
+\begin{equation}
+	(\bm{\alpha}, \bm{\beta})^{(t+1)} = \operatorname{arg}\min_{(\bm{\alpha}, \bm{\beta})} \sum_{d=1}^M\left(\mathbb{E}_{q}\left[\log p(\bm{\theta},\bm{z}, \bm{w}_d \mid \bm{\alpha}, \bm{\beta})\right] - \mathbb{E}_{q}\left[\log q(\bm{\theta}, \bm{z} \mid \gamma, \phi)\right]\right)          \tag{M-step}
+\end{equation}
+
+% Maximizing the previous lower bound \textit{w.r.t.} model parameters \(\alpha\) and \(\beta\) leads to an approximation of the empirical Bayes estimates
+
+\section{Generalization}
+
+Note that in our review, we assumed that all documents of the corpus had the same length N. This assumption clearly not always holds in real data sets. However the author proposes
+
+\section{Conclusion}
+This article
+The authors applied the LDA model for several tasks such as document modeling and document classification. At the time it outperformed .The literature on topic modeling that followed this article is abundant. Other approximation techniques have proven to be successful, for example Gibbs sampling.
+
+Note that in our review, we have
+
+
+\singlefig{sample_5}{0.85}{A LDA model is learned on 5 topics with 2246 documents from the Associated Press corpus using a c-implementation (\url{https://github.com/blei-lab/lda-c}).  The figure shows }{fig:sample}
+
+
+\subsection{Advantages}
+
+\begin{enumerate}
+	\item LDA is an effective tool for modeling
+\end{enumerate}
+
+\subsection{Limitations}
+
+\begin{enumerate}
+	\item Must know the number of topics in advance
+	\item Dirichlet topic distribution cannot capture correlations among topics
+	\item
+\end{enumerate}
+
+
+
+
+\printbibliography
+
+\end{document}
