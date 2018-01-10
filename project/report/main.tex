@@ -7,6 +7,9 @@
 \author{Quentin LEROY, Vincent MATTHYS, Bastien PONCHON}
 \date{December 2017}
 %https://www.youtube.com/watch?v=2pEkWk-LHmU
+\usepackage{multicol}
+\usepackage{fullpage}
+
 % ------------------------------------------------------------------------------
 
 
@@ -24,7 +27,6 @@
 
 	\rule{5cm}{0.5pt}
 
-	\vspace{1cm}
 \end{center}
 
 
@@ -34,44 +36,81 @@ The paper we are working on is \textbf{Latent Dirichlet Allocation}~\cite{lda_20
 \section{Model}
 
 
+Latent Dirichlet Allocation is a probabilistic model for corpora of text documents or other collections of discrete data.
 
-\begin{figure}
-	\centering
-	\begin{tikzpicture}[x=1.7cm,y=1.1cm]
-		% Nodes
+\begin{multicols}{2}
 
-		\node[obs]                   (w)      {$w_n$} ; %
-		\node[latent, left=of w]    (z)      {$z_n$} ; %
-		\node[latent, left=of z]    (theta)  {$\theta_d$}; %
-		\node[latent, left=of theta] (alpha) {$\alpha$};
+	\begin{figure}[H]
+		\centering
+		\begin{tikzpicture}[x=1.7cm,y=1.1cm]
+			% Nodes
 
-
-		% Factors
-		\factor[left=of w]     {w-f}     {below:Multi} {} {} ; %
-		\factor[left=of z]     {z-f}     {below:Multi} {} {} ; %
-		\factor[left=of theta] {theta-f} {below:Dir} {} {} ; %
-
-		\node[latent, above=of z] (beta)  {$\beta_k$}; %
-
-		\factoredge {alpha} {theta-f} {theta} ; %
-		\factoredge {theta}  {z-f}     {z} ; %
-		\factoredge {beta}   {w-f}   {w} ; %
-
-		\gate {w-gate} {(w-f)(w-f-caption)} {z}
-
-		\plate[inner sep = 0.35cm, xshift = -0.1cm] {plate1} {(w)(w-gate)(w)(z-f)(w-f-caption)} {$N$};
-		\plate {plate2} {(plate1)(theta)(theta-f)(theta-f-caption)} {$D$};
-		{
-		{\tikzset{plate caption/.append style={right=0.2cm of #1.south east}}
-		\plate[inner sep = 0.30cm]{plate3}{(beta)}{$K$};}
-		}
+			\node[obs]                   (w)      {$w_{n,d}$} ; %
+			\node[latent, left=of w]    (z)      {$z_{n, d}$} ; %
+			\node[latent, left=of z]    (theta)  {$\theta_d$}; %
+			\node[latent, left=of theta] (alpha) {$\alpha$};
 
 
-	\end{tikzpicture}
+			% Factors
+			\factor[left=of w]     {w-f}     {below:Multi} {} {} ; %
+			\factor[left=of z]     {z-f}     {below:Multi} {} {} ; %
+			\factor[left=of theta] {theta-f} {below:Dir} {} {} ; %
 
-	\caption{}
-	\label{}
-\end{figure}
+			\node[latent, above=of z] (beta)  {$\beta_k$}; %
+
+			\factoredge {alpha} {theta-f} {theta} ; %
+			\factoredge {theta}  {z-f}     {z} ; %
+			\factoredge {beta}   {w-f}   {w} ; %
+
+			\gate {w-gate} {(w-f)(w-f-caption)} {z}
+
+			\plate[inner sep = 0.35cm, xshift = -0.1cm] {plate1} {(w)(w-gate)(w)(z-f)(w-f-caption)} {$N$};
+			\plate {plate2} {(plate1)(theta)(theta-f)(theta-f-caption)} {$M$};
+			{
+			{\tikzset{plate caption/.append style={right=0.2cm of #1.south east}}
+			\plate[inner sep = 0.30cm]{plate3}{(beta)}{$K$};}
+			}
+
+
+		\end{tikzpicture}
+
+		\caption{Graphical model representation of LDA}
+		\label{fig_lda_graph}
+	\end{figure}
+
+	Using the language of text collections, we define:
+	\begin{itemize}
+		\item \(\mathcal{D}\) corpus of \(M\) documents of \(N\) words
+		\item \(K\) number of topics
+		\item \(V\) length of vocabulary in corpus \(\mathcal{D}\)
+		\item \(w_{d,n} \in \{0,1\}^V\) one-hot encoded word n in document d
+		\item \(\alpha \in ]0,1]^K\) prior on the per-document topic distributions
+		\item \(\theta_d \in \R^K\) probability of topics in document d: topic mixture at document level.
+		\item \(z_{d,n} \in \{0,1\}^K\) one-hot encoded topic of \(w_{d,n}\)
+		\item \(\beta \in [0,1]^{KV}\) with \(\beta_{{z_d}_{,n},{w_d}_{,n}}\) probability of word \(w_{d,n}\) given the topic \(z_{d,n}\)
+	\end{itemize}
+
+	So that we can express the following conditional probabilities:
+	\begin{align*}
+		p(\theta_d \mid \alpha)        & = \frac{\Gamma\left(\sum_{i=1}^K \alpha_i\right)}{\prod_{i=1}^K\Gamma(\alpha_i)}\prod_{i=1}^K \theta_i^{\alpha_i -1}
+		\\
+		p(z_{d,n} \mid \theta_d)       & = {\theta_{d,z}}_{d,n}                                                                                               \\
+		p(w_{d,n} \mid z_{n,d}, \beta) & = \beta_{{z_d}_{,n},{w_d}_{,n}}
+	\end{align*}
+
+
+
+	The joint distribution according to the graphical model in figure~\ref{fig_lda_graph} reads:
+\end{multicols}
+
+
+\begin{align}
+	p(\bm{\theta}, \bm{z}, \bm{w} \mid \alpha, \beta) & = \prod_{d=1}^M p(\theta_d \mid \alpha) \prod_{n=1}^N p(z_{d,n} \mid \theta_d)p(w_{d,n} \mid z_{n,d}, \beta)                                                                                       \\
+	                                                  & = \prod_{d=1}^M \frac{\Gamma\left(\sum_{i=1}^K \alpha_i\right)}{\prod_{i=1}^K\Gamma(\alpha_i)}\prod_{i=1}^K \theta_i^{\alpha_i -1} \prod_{n=1}^N {\theta_{d,z}}_{d,n}\beta_{{z_d}_{,n},{w_d}_{,n}}
+\end{align}
+\section{Inference}
+
+Leading to the marginal distribution over words \bm{w}:
 
 %
 % \begin{figure}[H]
@@ -91,12 +130,6 @@ The paper we are working on is \textbf{Latent Dirichlet Allocation}~\cite{lda_20
 % 	}
 % \end{figure}
 
-Latent Dirichlet Allocation is a probabilistic model for corpora of text documents or other collections of discrete data. We will use the language of text in this review.
-
-It includes two level of latent variables: the so-called topics $\mathbf{z}$ at word-level (drawn one for each word) and the topic mixtures $\theta$ at document-level (drawn once for each document). Observed variables are the words $w$. The parameters of the model are of two kinds: $\alpha$ that governs the distributions of the topic mixtures $\theta_d$ ($d$ indexes the documents) through a Dirichlet distribution and $\beta$ that governs the distributions of words $w_n$ conditioned on a topic $z_n$ ($n$ indexes the words) through a categorical distribution. For a fixed vocabulary size $V$ (range of values that words $w$ can take) and a fixed number of topics $k$ (range of values that topics $z$ can take) $\alpha$ is a $k$-vector and $\beta$ is a $k \times V$ matrix. Words and topics are discrete variables taking respectively $V$ and $K$ values and as such are classically encoding as one-hot vectors.
-
-
-A document is assumed to be a "bag of words" that is to say that the order of the words in the document does not matter. In a statistical point of view, words $\mathbf{w}=\{w_1,\dots,w_N\}$ being considered as random variables, it amounts to stating infine exchangeability of the collection of words $\mathbf{w}$. Actually the topics $\mathbf{z}$ are similarly exchangeable with a document. De Finetti representation theorem therefore concludes that the distribution $p(\mathbf{\mathbf{w}, \mathbf{z}})$ is a mixture over a latent parameter $\theta$, that is that we draw a parameter $\theta$ and then all the variables are drawn independently conditioned on this parameter. The joint distribution over topics and words of one document of $N$ words reads:
 $$p(\mathbf{w}, \mathbf{z})=\int \Big(\prod_{n=1}^N p(z_n|\theta)p(w_n|z_n)\Big)p(\theta)d\theta$$
 LDA makes use of the exchangeability of the words and topics within documents and this representation of the joint distribution over words and topics. Moreover it adds a Dirichlet prior over $\theta$ and model the conditional distributions $p(w_n|z_n)$ as multinomials parameterized by $\beta$ as the graphical models shows in Figure 1 as well as the following N-word document generation procedure makes clear.
 
