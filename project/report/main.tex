@@ -7,9 +7,10 @@
 \author{Quentin LEROY, Vincent MATTHYS, Bastien PONCHON}
 \date{December 2017}
 %https://www.youtube.com/watch?v=2pEkWk-LHmU
-\usepackage{multicol}
-\usepackage{fullpage}
-
+% http://www.cis.jhu.edu/~xye/papers_and_ppts/ppts/LDA_study_notes_Xugang.pdf
+% https://www.scss.tcd.ie/~jayapala/docs/Dirichlet.pdf
+% https://papers.nips.cc/paper/3455-relative-performance-guarantees-for-approximate-inference-in-latent-dirichlet-allocation.pdf
+% https://arxiv.org/pdf/1601.00670.pdf
 % ------------------------------------------------------------------------------
 
 
@@ -29,26 +30,22 @@
 
 \end{center}
 
-
-The paper we are working on is \textbf{Latent Dirichlet Allocation}~\cite{lda_2003}.
-
-
 \section{Model}
 
 
-Latent Dirichlet Allocation is a probabilistic model for corpora of text documents or other collections of discrete data.
+Latent Dirichlet Allocation is a generative probabilistic model, presentend in~\cite{lda_2003}, for corpora of text documents or other collections of discrete data.
 
 \begin{multicols}{2}
 
 	\begin{figure}[H]
 		\centering
-		\begin{tikzpicture}[x=1.7cm,y=1.1cm]
+		\begin{tikzpicture}[x=1.6cm,y=1.1cm]
 			% Nodes
 
-			\node[obs]                   (w)      {$w_{n,d}$} ; %
-			\node[latent, left=of w]    (z)      {$z_{n, d}$} ; %
-			\node[latent, left=of z]    (theta)  {$\theta_d$}; %
-			\node[latent, left=of theta] (alpha) {$\alpha$};
+			\node[obs, label = {[yshift = -0.1cm]word}]                   (w)      {$w_{d,n}$} ; %
+			\node[latent, label = {[yshift = -0.1cm]topic}, left=of w]    (z)      {$z_{d, n}$} ; %
+			\node[latent, label = {[align = left, yshift = -2.5cm]topic-doc\\weights}, left=of z]    (theta)  {$\theta_d$}; %
+			\node[latent, label = {[align = left, above = 0.88cm, xshift = 0.5cm]dirichlet\\ parameter}, left=of theta] (alpha) {$\alpha$};
 
 
 			% Factors
@@ -56,7 +53,7 @@ Latent Dirichlet Allocation is a probabilistic model for corpora of text documen
 			\factor[left=of z]     {z-f}     {below:Multi} {} {} ; %
 			\factor[left=of theta] {theta-f} {below:Dir} {} {} ; %
 
-			\node[latent, above=of z] (beta)  {$\beta_k$}; %
+			\node[latent, label = {[align = left, below = -0.1cm, xshift = -1.8cm]topic-word\\weights}, above=of z] (beta)  {$\beta_k$}; %
 
 			\factoredge {alpha} {theta-f} {theta} ; %
 			\factoredge {theta}  {z-f}     {z} ; %
@@ -80,6 +77,7 @@ Latent Dirichlet Allocation is a probabilistic model for corpora of text documen
 
 	Using the language of text collections, we define:
 	\begin{itemize}
+		\setlength\itemsep{1pt}
 		\item \(\mathcal{D}\) corpus of \(M\) documents of \(N\) words
 		\item \(K\) number of topics
 		\item \(V\) length of vocabulary in corpus \(\mathcal{D}\)
@@ -92,26 +90,110 @@ Latent Dirichlet Allocation is a probabilistic model for corpora of text documen
 
 	So that we can express the following conditional probabilities:
 	\begin{align*}
-		p(\theta_d \mid \alpha)        & = \frac{\Gamma\left(\sum_{i=1}^K \alpha_i\right)}{\prod_{i=1}^K\Gamma(\alpha_i)}\prod_{i=1}^K \theta_i^{\alpha_i -1}
+		p(\theta_d \mid \alpha)        & = \frac{\Gamma\left(\sum_{i=1}^K \alpha_i\right)}{\prod_{i=1}^K\Gamma(\alpha_i)}\prod_{i=1}^K \theta_{d,i}^{\alpha_i -1}
 		\\
-		p(z_{d,n} \mid \theta_d)       & = {\theta_{d,z}}_{d,n}                                                                                               \\
-		p(w_{d,n} \mid z_{n,d}, \beta) & = \beta_{{z_d}_{,n},{w_d}_{,n}}
+		p(z_{d,n} \mid \theta_d)       & = {\theta_{d,z}}_{d,n} = \prod_{k=1}^K \theta_{d,k}^{z_{d,n}^k} =\prod_{k=1}^K \prod_{j=1}^V \theta_{d,j}^{z_{d,n}^k  w_{d,n}^j} \\
+		p(w_{d,n} \mid z_{n,d}, \beta) & = \beta_{{z_d}_{,n},{w_d}_{,n}} = \prod_{k=1}^K \prod_{j=1}^V \beta_{k,j}^{z_{d,n}^k  w_{d,n}^j}
 	\end{align*}
 
 
 
-	The joint distribution according to the graphical model in figure~\ref{fig_lda_graph} reads:
 \end{multicols}
 
+The joint distribution according to the graphical model in figure~\ref{fig_lda_graph} reads:
 
 \begin{align}
-	p(\bm{\theta}, \bm{z}, \bm{w} \mid \alpha, \beta) & = \prod_{d=1}^M p(\theta_d \mid \alpha) \prod_{n=1}^N p(z_{d,n} \mid \theta_d)p(w_{d,n} \mid z_{n,d}, \beta)                                                                                       \\
-	                                                  & = \prod_{d=1}^M \frac{\Gamma\left(\sum_{i=1}^K \alpha_i\right)}{\prod_{i=1}^K\Gamma(\alpha_i)}\prod_{i=1}^K \theta_i^{\alpha_i -1} \prod_{n=1}^N {\theta_{d,z}}_{d,n}\beta_{{z_d}_{,n},{w_d}_{,n}}
+	p(\bm{\theta}, \bm{z}, \bm{w} \mid \alpha, \beta) & = \prod_{d=1}^M p(\theta_d \mid \alpha) \prod_{n=1}^N p(z_{d,n} \mid \theta_d)p(w_{d,n} \mid z_{n,d}, \beta)                                                                                                                                 \\
+	                                                  & = \frac{\Gamma\left(\sum_{i=1}^K \alpha_i\right)}{\prod_{i=1}^K\Gamma(\alpha_i)}\prod_{d=1}^M \prod_{i=1}^K \theta_{d,i}^{\alpha_i -1} \prod_{n=1}^N \prod_{k=1}^K \prod_{j=1}^V \left(\theta_{d,k}\beta_{k,j}\right)^{z_{d,n}^k  w_{d,n}^j}
+	\label{eq_joint}
 \end{align}
+
 \section{Inference}
 
-Leading to the marginal distribution over words \bm{w}:
+Using the equation~\eqref{eq_joint}, the marginal distribution over words \(\bm{w}\) can be written as:
 
+\begin{align}
+	p(\bm{w} \mid \alpha, \beta) & = \frac{\Gamma\left(\sum_{i=1}^K \alpha_i\right)}{\prod_{i=1}^K\Gamma(\alpha_i)}\sum_{\bm{z}}\prod_{d=1}^M\int_{\theta_d}\left( \prod_{i=1}^K \theta_{d,i}^{\alpha_i -1} \prod_{n=1}^N \prod_{k=1}^K \prod_{j=1}^V \left(\theta_{d,k}\beta_{k,j}\right)^{z_{d,n}^k  w_{d,n}^j}\right)d{\theta_d}
+	\label{eq_intractable}
+\end{align}
+which is not tractable due to the sum and integral over multidimensional parameters. The exact inference problem is not solvable, and there are different ways to do approximate inference.
+
+\subsection{Mean-field variational inference}
+
+Similarly to the derivation of the EM algorithm, finding a lower-bound on the log-likelihood \(\log p(\bm{w} \mid \alpha, \beta)\) involves using Jensen's inequality and a distribution \(q\) over latent variables \(\bm{\theta}\) and \(\bm{z}\). It leads to the evidence lower bound \(\mathcal{L}\), called ELBO:
+
+\begin{align}
+	\log p(\bm{w} \mid \alpha, \beta) \geq \mathbb{E}_q[\log p(\bm{\theta}, \bm{z}, \bm{w} \mid \alpha, \beta)] - \mathbb{E}_q[\log q(\bm{\theta},\bm{z})] = \mathcal{L}(q ; \alpha, \beta) \label{eq_llh}
+\end{align}
+
+In the EM-algorithm, this ELBO is exactly equal to the log-likelihood for a distribution \(q(\bm{\theta}, \bm{z}) = p(\bm{\theta}, \bm{z} \mid \bm{w}, \alpha, \beta) =p(\bm{\theta}, \bm{z}, \bm{w} \mid \alpha, \beta) / p(\bm{w} \mid \alpha, \beta)\). Nevertheless the denominator is not tractable, as seen in equation~\eqref{eq_intractable} thus the expectation under \(q(\bm{\theta}, \bm{z})\) is not computable. Therefore a variational distribution has to be used to maximize the lower-bound through an optimization problem.
+
+\begin{multicols}{2}
+	\begin{figure}[H]
+		\centering
+		\begin{tikzpicture}[x=1.6cm,y=1.1cm]
+			% Nodes
+
+			\node[latent, label = {[yshift = -0.1cm]}]                   (z)      {$z_{d,n}$} ; %
+			\node[latent, label = {[align = left, left = 1cm, yshift = -0.3cm]variational\\topic-word\\distribution}, left=of z]    (phi)      {$\phi_{d, n}$} ; %
+			\node[latent, label = {[align = left, yshift = -2.5cm]}, below=of z]    (theta)  {$\theta_d$}; %
+			\node[latent, label = {[align = left, yshift = -0.2cm, left = 1cm]variational\\topic-doc\\distribution}, left=of theta] (gamma) {$\gamma_d$};
+
+
+			% Factors
+			\factor[left=of z]     {z-f}     {Multi} {} {} ; %
+			\factor[left=of theta] {theta-f} {Dir} {} {} ; %
+
+			\factoredge {gamma} {theta-f} {theta} ; %
+			\factoredge {phi}  {z-f}     {z} ; %
+
+			\plate[inner sep = 0.35cm, xshift = -0.1cm] {plate1} {(phi)(z)(z-f)(z-f-caption)} {$N$};
+			\plate {plate2} {(plate1)(theta)(theta-f)(theta-f-caption)} {$M$};
+
+
+		\end{tikzpicture}
+
+		\caption{Graph of considered mean-field family}
+		\label{fig_lda_variational}
+	\end{figure}
+
+	Specifying the form of \(q(\bm{\theta}, \bm{z})\) using the mean-field family with variational parameters \(\bm{\gamma}\) and \(\bm{\phi}\), factorizing according to the graph in figure~\ref{fig_lda_variational}:
+
+	\begin{align}
+		q(\bm{\theta}, \bm{z} \mid \bm{\phi}, \bm{\gamma}) & = q(\bm{\theta} \mid \bm{\gamma}) q(\bm{z} \mid \bm{\phi})                               \\
+		                                                   & = \prod_{d=1}^M q(\theta_d \mid \gamma_d) \prod_{n=1}^N q(z_{d,n} \mid \phi_{d,n})\notag \\
+		                                                   & = \prod_{d=1}^M q(\theta_d \mid \gamma_d) \prod_{n=1}^N q(z_{d,n} \mid \phi_{d,n})\notag
+	\end{align}
+	\begin{align}
+		q(\theta_d \mid \gamma_d)  & = \gamma_\notag \\
+		q(z_{d,n} \mid \phi_{d,n}) & = \notag
+	\end{align}
+\end{multicols}
+
+The ELBO connects the variational distribution \(q(\bm{\theta}, \bm{z} \mid \bm{\phi}, \bm{\gamma})\) to the posterior distribution \(p(\bm{\theta}, \bm{z}, \bm{w} \mid \alpha, \beta)\) through the KL-divergence as shown in equation~\eqref{eq_kl}:
+
+\begin{equation}
+	\mathcal{L}(\bm{\gamma}, \bm{\phi} ; \alpha, \beta) = -\mathcal{D}(q(\bm{\theta}, \bm{z} \mid \gamma, \phi)\mid\mid p(\bm{\theta}, \bm{z} \mid \alpha, \beta)) + \log p(\bm{w} \mid \alpha, \beta)
+	\label{eq_kl}
+\end{equation}
+
+Given fixed \(\bm{w}\) the variational parameters of the resulting variational distribution are solutions to:
+\begin{equation*}
+	(\bm{\gamma}, \bm{\phi}) = \operatorname{arg}\min_{(\bm{\gamma}, \bm{\phi})} \mathcal{D}(q(\bm{\theta}, \bm{z} \mid \gamma, \phi)\mid\mid p(\bm{\theta}, \bm{z} \mid \alpha, \beta)) \tag{variational E-step}
+\end{equation*}
+
+Given this resulting variational distribution, the expectation in  equation~\refeq{eq_llh} can be computed and the parameters \(\alpha\) and \(\beta\) can be estimated through the classical corresponding M-step:
+\begin{equation*}
+	(\alpha, \beta) = \operatorname{arg}\max_{(\bm{\gamma}, \bm{\phi})} \mathbb{E}_{q}\left[\log p(\bm{\theta},\bm{z}, \bm{w} \mid \alpha, \beta)\right] - \mathbb{E}_{q}\left[\log q(\bm{\theta}, \bm{z} \mid \bm{\gamma}, \bm{\phi})\right] \tag{M-step}
+\end{equation*}
+The variational E-step has to be updated as the model parameters \(\alpha\) and \(\beta\) are updated.
+
+
+
+\subsection{Gibbs sampling}
+
+
+\newpage
 %
 % \begin{figure}[H]
 % 	\centering
