@@ -89,7 +89,7 @@ class HMM(object):
                 # Compute the path for the i_th state
                 for i in range(self.M):
                     alphas[i, t] = np.log(self.O[i].pdf(self.u[t]))\
-                                 + logsumexp(alphas[:, t - 1], b = A[:, i])
+                                 + logsumexp(alphas[:, t - 1], b = self.A[:, i])
         self.alphas = alphas
         return
 
@@ -107,7 +107,7 @@ class HMM(object):
         for t in range(1, self.T):
             # Compute the path for the i_th state
             for i in range(self.M):
-                alphas_norm[i, t] = self.O[i].pdf(self.u[t]) * (alphas_norm[:, t - 1] * A[:, i]).sum()
+                alphas_norm[i, t] = self.O[i].pdf(self.u[t]) * (alphas_norm[:, t - 1] * self.A[:, i]).sum()
             alphas_norm[:, t] /= alphas_norm[:, t].sum()
         self.alphas_norm = alphas_norm
         return
@@ -127,7 +127,7 @@ class HMM(object):
             # Compute the path for the i_th state
             for i in range(self.M):
                 betas[i, t] = logsumexp(betas[:, t + 1],
-                                        b = A[i, :] * [self.O[q].pdf(self.u[t + 1]) for q in range(self.M)])
+                                        b = self.A[i, :] * [self.O[q].pdf(self.u[t + 1]) for q in range(self.M)])
         self.betas = betas
         return
     def _smoothing(self, t, check = True):
@@ -169,8 +169,8 @@ class HMM(object):
         for t in range(self.T - 2, -1, -1):
             # Compute the path for the i_th state
             for i in range(self.M):
-                gammas[i, t] = float(np.array([self.alphas_norm[i, t] * A[i, j] * gammas[j, t + 1] \
-                               / (self.alphas_norm[:, t] * A[:, j]).sum() for j in range(self.M)]).sum())
+                gammas[i, t] = float(np.array([self.alphas_norm[i, t] * self.A[i, j] * gammas[j, t + 1] \
+                               / (self.alphas_norm[:, t] * self.A[:, j]).sum() for j in range(self.M)]).sum())
         self.gammas = gammas
         return
 
@@ -188,17 +188,14 @@ class HMM(object):
         # Initialization
         xis = np.zeros((self.T - 1, self.M, self.M))
         # for the t_th observation
-        for t in range(self.T - 1):
-            for i in range(self.M):
-                for j in range(self.M):
-                    xis[t, i, j] = np.log(np.exp(logsumexp(self.alphas[:, t]) - logsumexp(self.alphas[:, t + 1])))\
-                                   + np.log(self.alphas_norm[i, t]) + np.log(self.O[j].pdf(self.u[t + 1]))\
-                                   + np.log(self.gammas[j, t + 1] * A[i, j]) \
-                                   - np.log(self.alphas_norm[j, t + 1])
-#                     xis[t, i, j] = np.exp(logsumexp(self.alphas[:, t]) - logsumexp(self.alphas[:, t + 1]))\
-#                                    * self.alphas_norm[i, t] * self.O[j].pdf(self.u[t + 1])\
-#                                    * self.gammas[j, t + 1] * A[i, j] \
-#                                    / (self.alphas_norm[j, t + 1])
+        with np.errstate(divide='ignore'):
+            for t in range(self.T - 1):
+                for i in range(self.M):
+                    for j in range(self.M):
+                        xis[t, i, j] = np.log(np.exp(logsumexp(self.alphas[:, t]) - logsumexp(self.alphas[:, t + 1])))\
+                                       + np.log(self.alphas_norm[i, t]) + np.log(self.O[j].pdf(self.u[t + 1]))\
+                                       + np.log(self.gammas[j, t + 1] * self.A[i, j]) \
+                                       - np.log(self.alphas_norm[j, t + 1])
         self.xis = np.exp(xis)
         return
 
@@ -228,10 +225,10 @@ class HMM(object):
         # A update
         self.A = self.xis.sum(0) / self.gammas.sum(1).reshape(-1, 1)
         # Emission parameters update
-        params = {"mu" : np.array([(hmm.gammas[k, :].reshape(-1, 1) * hmm.u).sum(0)\
-                                   / hmm.gammas[k, :].sum() for k in range(self.M)]),
-                  "sigma" : np.array([(hmm.gammas[k, :].reshape(1, -1) * ((hmm.u - hmm.O[k].mean).T))\
-                       .dot((hmm.u - hmm.O[k].mean)) / hmm.gammas[k, :].sum() for k in range(self.M)])}
+        params = {"mu" : np.array([(self.gammas[k, :].reshape(-1, 1) * self.u).sum(0)\
+                                   / self.gammas[k, :].sum() for k in range(self.M)]),
+                  "sigma" : np.array([(self.gammas[k, :].reshape(1, -1) * ((self.u - self.O[k].mean).T))\
+                       .dot((self.u - self.O[k].mean)) / self.gammas[k, :].sum() for k in range(self.M)])}
         self.O = np.array([multivariate_normal(params["mu"][key], params["sigma"][key])
                            for key in range(params["mu"].shape[0])])
         return
