@@ -24,21 +24,22 @@ class HMM(object):
         pi:                  array-like, shape(nbr_states,)
                              initial state distribution
         """
-        # Observations
-        self.u = u
         # Model constants
         self.T = u.shape[0]
         self.d = u.shape[1]
         self.M = nbr_states
         # Model parameters
-        self.pi = pi
+        if type(pi) == list:
+            self.pi = np.array(pi).reshape(-1)
+        else:
+            self.pi = pi
         self.A = A
         self.O = emission
         if len(self.O) != self.M:
             raise ValueError("Number of states {} and number of emission {}"
             "distributions do not match.".format(self.M, len(self.O)))
         if A is not None:
-            if A.shape[0] != A.shape[1] or not (np.round(A.sum(0), 3) == [1] * nbr_states).all():
+            if A.shape[0] != A.shape[1] or not (np.round(A.sum(1), 3) == [1] * nbr_states).all():
                 raise ValueError("A is not a valid transition matrix")
         if pi is not None:
             if len(pi) != nbr_states:
@@ -50,8 +51,8 @@ class HMM(object):
         self.alphas_norm = None
         self.gammas = None
         self.xis = None
-        # Complete log-likelihood
-        self.likelihood = []
+        self.likelihood_train = []
+        self.likelihood_test = []
         return
 
     def _check_parameters(self):
@@ -63,17 +64,21 @@ class HMM(object):
         elif self.pi is None:
             raise ValueError("Initial state distribution is unknown")
         return
-    
-    def _alpha_beta_recusion(self, check_value = True):
+
+    def _alpha_beta_recusion(self, u = None, check_value = True):
         """
         Checking if alpha or beta recursion has to be done
         """
-        if self.alphas is None:
-            self._alpha_recursion()
-        elif self.betas is None:
-            self._beta_recursion()
+        if check_value:
+            if u is not None:
+                if self.alphas is None:
+                    self._alpha_recursion(u)
+                elif self.betas is None:
+                    self._beta_recursion(u)
+            else:
+                raise ValueError("Observations are needed")
 
-    def _alpha_recursion(self):
+    def _alpha_recursion(self, u, update = False):
         """
         Alpha recursion
         ---------------
@@ -83,17 +88,18 @@ class HMM(object):
         alphas = np.zeros((self.M, self.T))
         # Initialization of alphas
         with np.errstate(divide='ignore'):
-            alphas[:, 0] = np.log(self.pi * np.array([self.O[i].pdf(self.u[0]) for i in range(self.M)]))
+            alphas[:, 0] = np.log(self.pi * np.array([self.O[i].pdf(u[0]) for i in range(self.M)]))
             # For the t_th observation
             for t in range(1, self.T):
                 # Compute the path for the i_th state
                 for i in range(self.M):
-                    alphas[i, t] = np.log(self.O[i].pdf(self.u[t]))\
+                    alphas[i, t] = np.log(self.O[i].pdf(u[t]))\
                                  + logsumexp(alphas[:, t - 1], b = self.A[:, i])
-        self.alphas = alphas
-        return
+        if update:
+            self.alphas = alphas
+        return alphas
 
-    def _alpha_norm_recursion(self):
+    def _alpha_norm_recursion(self, u, update = False):
         """
         Alpha normalized recursion
         """
@@ -101,18 +107,19 @@ class HMM(object):
         self._check_parameters()
         alphas_norm = np.zeros((self.M, self.T))
         # Initialization of alphas
-        alphas_norm[:, 0] = self.pi * np.array([self.O[i].pdf(self.u[0]) for i in range(self.M)])
+        alphas_norm[:, 0] = self.pi * np.array([self.O[i].pdf(u[0]) for i in range(self.M)])
         alphas_norm[:, 0] /= alphas_norm[:, 0].sum()
         # For the t_th observation
         for t in range(1, self.T):
             # Compute the path for the i_th state
             for i in range(self.M):
-                alphas_norm[i, t] = self.O[i].pdf(self.u[t]) * (alphas_norm[:, t - 1] * self.A[:, i]).sum()
+                alphas_norm[i, t] = self.O[i].pdf(u[t]) * (alphas_norm[:, t - 1] * self.A[:, i]).sum()
             alphas_norm[:, t] /= alphas_norm[:, t].sum()
-        self.alphas_norm = alphas_norm
-        return
+        if update:
+            self.alphas_norm = alphas_norm
+        return alphas_norm
 
-    def _beta_recursion(self):
+    def _beta_recursion(self, u, update = False):
         """
         Beta recursion
         --------------
@@ -127,9 +134,11 @@ class HMM(object):
             # Compute the path for the i_th state
             for i in range(self.M):
                 betas[i, t] = logsumexp(betas[:, t + 1],
-                                        b = self.A[i, :] * [self.O[q].pdf(self.u[t + 1]) for q in range(self.M)])
-        self.betas = betas
-        return
+                                        b = self.A[i, :] * [self.O[q].pdf(u[t + 1]) for q in range(self.M)])
+        if update:
+            self.betas = betas
+        return betas
+
     def _smoothing(self, t, check = True):
         """
         Inference task: smoothing
@@ -137,22 +146,25 @@ class HMM(object):
         """
         # Compute alphas and betas if needed
         if check == True:
-            self._alpha_beta_recusion()
+            self._alpha_beta_recusion(u)
         return self.alphas[:, t] + self.betas[:, t] - logsumexp(self.alphas[:, -1])
 
-    def _smoothing_all(self, check = True):
+    def _smoothing_all(self, check = True, u = None):
         """
         Inference task: smoothing
         Find the distribution of the hidden state at t given the actual observations
         """
         if check:
-            self._alpha_beta_recusion()
-        
+            if u is None:
+                raise ValueError("Observations are needed to compute smoothing from sracth")
+            else:
+                self._alpha_beta_recusion(u)
+
         self.smoothing_all = np.array([self._smoothing(t, check = False) for t in range(self.T)]).T
-        if (np.round(np.exp(self.smoothing_all).sum(0), 3) != 1).any():
+        if (np.round(np.exp(self.smoothing_all).sum(0), 2) != 1).any():
             raise ValueError("Numerical approximations failed, please be careful with next results")
 
-    def _gamma_recursion(self):
+    def _gamma_recursion(self, u, update = False):
         """
         Gamma recursion
         Using normalized alpha recursion
@@ -161,7 +173,7 @@ class HMM(object):
         # Can't do inference if A is missing
         self._check_parameters()
         # Use normalized alphas to avoid numerical issues
-        self._alpha_norm_recursion()
+        self._alpha_norm_recursion(u)
         # Initialization
         gammas = np.zeros((self.M, self.T))
         gammas[:, -1] = self.alphas_norm[:, -1]
@@ -171,20 +183,21 @@ class HMM(object):
             for i in range(self.M):
                 gammas[i, t] = float(np.array([self.alphas_norm[i, t] * self.A[i, j] * gammas[j, t + 1] \
                                / (self.alphas_norm[:, t] * self.A[:, j]).sum() for j in range(self.M)]).sum())
-        self.gammas = gammas
-        return
+        if update:
+            self.gammas = gammas
+        return gammas
 
-    def _xi_recursion(self):
+    def _xi_recursion(self, u, update = False):
         """
         Xi recursion
         Using normalized alpha recursion
         """
         # Can't do inference if gamma has not been computed yet
         if self.gammas is None:
-            self._gamma_recursion()
+            self._gamma_recursion(u)
         # Can't do inference if alphas has not been computed yet too
         if self.alphas is None:
-            self._alpha_recursion()
+            self._alpha_recursion(u)
         # Initialization
         xis = np.zeros((self.T - 1, self.M, self.M))
         # for the t_th observation
@@ -192,30 +205,28 @@ class HMM(object):
             for t in range(self.T - 1):
                 for i in range(self.M):
                     for j in range(self.M):
-                        xis[t, i, j] = np.log(np.exp(logsumexp(self.alphas[:, t]) - logsumexp(self.alphas[:, t + 1])))\
-                                       + np.log(self.alphas_norm[i, t]) + np.log(self.O[j].pdf(self.u[t + 1]))\
+                        xis[t, i, j] = logsumexp(self.alphas[:, t]) - logsumexp(self.alphas[:, t + 1])\
+                                       + np.log(self.alphas_norm[i, t]) + np.log(self.O[j].pdf(u[t + 1]))\
                                        + np.log(self.gammas[j, t + 1] * self.A[i, j]) \
                                        - np.log(self.alphas_norm[j, t + 1])
-        self.xis = np.exp(xis)
-        return
+            xis = np.exp(xis)
+        if update:
+            self.xis = xis
+        return xis
 
-    def _e_step(self):
+    def _e_step(self, u):
         """
         Expectation step
         ----------------
         """
-        self._alpha_recursion()
-        # Compute incomplete log_likelihood
-        self._log_likelihood_incomplete()
-        # Compute complete log_likelihood
-#         self._log_likelihood_complete()
-        self._alpha_norm_recursion()
-        self._gamma_recursion()
-        self._xi_recursion()
+        self._alpha_recursion(u, update = True)
+        self._alpha_norm_recursion(u, update = True)
+        self._gamma_recursion(u, update = True)
+        self._xi_recursion(u, update = True)
 
-        return
+        return self._log_likelihood_incomplete(alphas = self.alphas)
 
-    def _m_step(self):
+    def _m_step(self, u):
         """
         Maximization step
         -----------------
@@ -224,54 +235,75 @@ class HMM(object):
         self.pi = self.gammas[:, 0]
         # A update
         self.A = self.xis.sum(0) / self.gammas.sum(1).reshape(-1, 1)
+        self.A /= self.A.sum(1).reshape(-1, 1)
         # Emission parameters update
-        params = {"mu" : np.array([(self.gammas[k, :].reshape(-1, 1) * self.u).sum(0)\
+        params = {"mu" : np.array([(self.gammas[k, :].reshape(-1, 1) * u).sum(0)\
                                    / self.gammas[k, :].sum() for k in range(self.M)]),
-                  "sigma" : np.array([(self.gammas[k, :].reshape(1, -1) * ((self.u - self.O[k].mean).T))\
-                       .dot((self.u - self.O[k].mean)) / self.gammas[k, :].sum() for k in range(self.M)])}
+                  "sigma" : np.array([(self.gammas[k, :].reshape(1, -1) * ((u - self.O[k].mean).T))\
+                       .dot((u - self.O[k].mean)) / self.gammas[k, :].sum() for k in range(self.M)])}
         self.O = np.array([multivariate_normal(params["mu"][key], params["sigma"][key])
                            for key in range(params["mu"].shape[0])])
         return
 
-    def _log_likelihood_incomplete(self):
+    def _log_likelihood_incomplete(self, alphas = None, u = None):
         """
-        Compute incomplete log-likelihood
+        Computes and returns the incomplete log-likelihood
         """
-        print("--------------------\nLog-likelihood\n")
-        print(self.alphas[:, -1])
-        self.likelihood.append(logsumexp(self.alphas[:, -1]))
-#         self.likelihood.append(self.alphas[-1, -1])
-        return 
+        if alphas is None:
+            if u is None:
+                raise ValueError("Can't compute likelihood if observations are"
+                                 " not given")
+            else:
+                alphas = self._alpha_recursion(u, update = False)
+        return logsumexp(alphas[:, -1])
 
-    def _log_likelihood_complete(self):
+    def _log_likelihood_complete(self, u):
         """
-        Compute the complete log-likelihood
+        Computes and returns the complete log-likelihood
         """
-        
-        l = np.array([[np.log(self.O[k].pdf(self.u[t])) * self.gammas[k, t] + 1e-10 for k in range(self.M)]\
+
+        l = np.array([[np.log(self.O[k].pdf(u[t])) * self.gammas[k, t] + 1e-10 for k in range(self.M)]\
                   for t in range(self.T)]).sum() \
                + (np.log(self.A) * self.xis.sum(0)).sum() \
                + (np.log(self.pi) * self.gammas[:, 0]).sum()
-        self.likelihood.append(l)
-        return
+        return l
 
-    def _EM(self, A, pi, emission):
+    def _EM(self, u, u_test = None, A = None, pi = None, emission = None):
         """
         Learning parameters with Expectation-Maximization algorithm
         (Only works for gaussian emission)
         -----------------------------------------------------------
-        
+
+        Returns the new parameters
         """
         # Initial start
-        self.A = A
-        self.pi = pi
-        self.O = emission
+        if A is not None:
+            self.A = A
+        if pi is not None:
+            self.pi = pi
+        if emission is not None:
+            self.O = emission
         # Stop condition
         stop = False
         while (stop == False):
-            self._e_step()
-            self._m_step()
-            print (self.likelihood[-1])
-            if (len(self.likelihood) > 2 and np.abs(self.likelihood[-2] - self.likelihood[-1]) < 1e-3):
+            self.likelihood_train.append(self._e_step(u))
+            if u_test is not None:
+                self.likelihood_test.append(self._log_likelihood_incomplete(alphas = None, u = u_test))
+                print("Incomplete likelihood: {:.4e} in train || {:.4e} in test".format(self.likelihood_train[-1],\
+                                                                                        self.likelihood_test[-1]))
+            else:
+                print ("Incomplete likelihood in training: {:.4e}".format(self.likelihood_train[-1]))
+            self._m_step(u)
+            if (len(self.likelihood_train) > 2 \
+                and np.abs((self.likelihood_train[-2] - self.likelihood_train[-1])/self.likelihood_train[-1]) < 1e-4):
                 stop = True
-        return
+        params = {
+            "mu": np.array([(self.gammas[k, :].reshape(-1, 1) * u).sum(0)\
+                            / self.gammas[k, :].sum() for k in range(self.M)]),
+            "sigma": np.array([(self.gammas[k, :].reshape(1, -1)\
+                                * ((u - self.O[k].mean).T)).dot(u - self.O[k].mean)\
+                                / self.gammas[k, :].sum()  for k in range(self.M)])
+        }
+        return params
+
+#     def _EM_evolution_train_test(self, A = None, pi = None, emission = None):
