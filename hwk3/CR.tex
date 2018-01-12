@@ -164,7 +164,7 @@ D'autre part, grâce aux calculs déjà effectués pour les estimateurs de vrais
 
 Ces estimateurs doivent être pris sous l'espérance précise obtenue lors de l'étape E de l'algorithme EM, donnée par l'équation~\eqref{eq_EM_steps}, afin que la maximisation de la log-vraisemblance complète induise une augmentation de la log-vraisemblance incomplète lors de l'itération \(s + 1\).
 
-En reprenant l'estimateur de \(\pi\) obtenu en équation~\eqref{eq_pi_MLE}, on obtient l'estimateur à l'itération \((s_1)\) :
+En reprenant l'estimateur de \(\pi\) obtenu en équation~\eqref{eq_pi_MLE}, on obtient l'estimateur à l'itération \((s + 1)\) :
 \begin{equation}
 	\begin{split}
 		\widehat{\pi_{i}}^{(s + 1)} &= \mathbb{E}_{\bm{q} \mid \bm{u}, \bm{\theta}^{(s)}}[q_1^i] \\
