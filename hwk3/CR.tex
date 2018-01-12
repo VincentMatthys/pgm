@@ -104,7 +104,7 @@ La tâche d'inférence dite de \textit{filtering} est également ajoutée en nor
 \begin{equation*}
 	\alpha_t^{\text{norm}}(q_t) = p(q_t \mid u_1, \dots, u_t) = \frac{\alpha_t(q_t)}{\sum_{q_t}\alpha_t(q_t)}
 \end{equation*}
-et est disponible par le calcul des \(\alpha_{\text{norm}}\) dans le code fourni.
+et est disponible par le calcul des \(\alpha^{\text{norm}}\) dans le code fourni.
 
 \subsection{}
 
@@ -114,6 +114,7 @@ et est disponible par le calcul des \(\alpha_{\text{norm}}\) dans le code fourni
 	\caption{Smoothing result for the first 100 datapoints}
 	\label{fig_2_smoothing}
 \end{figure}
+La figure donnant le résulat du smoothing des 100 premier points est présentée en figure~\ref{fig_2_smoothing}. On y constate notamment une alternance importante entre les états 1 et 2, qui représentent également la majorité des états les plus probables.
 
 
 \subsection{}
@@ -195,12 +196,13 @@ De la même façon, on obtient les estimateurs à l'itération \((s+1)\) pour le
 	\end{aligned}
 \end{equation}
 
-L'implémentation du calcul des \(\gamma\) et \(\xi\) est succintement détaillée et fait intervenir le calcul des \(\alpha_{\text{norm}}\) du problème de \textit{filtering}.
+L'implémentation du calcul des \(\gamma\) et \(\xi\) est succintement détaillée et fait intervenir le calcul des \(\alpha^{\text{norm}}\) du problème de \textit{filtering}.
 \begin{equation}
 	\begin{split}
 		\gamma_t(q_t) &= p(q_t \mid u_1, \dots, u_T)\\
 		&= \sum_{q_{t+1}}p(q_t, q_{t+1} \mid u_1, \dots, u_T)\\
 		&= \sum_{q_{t+1}} \frac{\alpha_t(q_t)A_{q_t, q_{t+1}}}{\sum_{q_t}\alpha_t(q_t)A_{q_t, q_{t+1}}}\gamma_{t+1}(q_{t+1})\\
+		&= \sum_{q_{t+1}} \frac{{\alpha^{\text{norm}}}_{,t}(q_t)A_{q_t, q_{t+1}}}{\sum_{q_t}{\alpha^{\text{norm}}}_{,t}(q_t)A_{q_t, q_{t+1}}}\gamma_{t+1}(q_{t+1})\\
 	\end{split}
 \end{equation}
 
@@ -208,8 +210,28 @@ L'implémentation du calcul des \(\gamma\) et \(\xi\) est succintement détaill�
 	\begin{split}
 		\xi_{t,t+1}(q_t, q_{t+1}) &= p(q_t, q_{t+1} \mid \bm{u})\\
 		&= \frac{\alpha_t(q_t)p(u_{t+1} \mid q_{t-1})\gamma_{t+1}(q_{t+1})A_{q_t, q_{t+1}}}{\alpha_{t+1}(q_{t+1})}\\
+		&= \frac{\alpha^{\text{norm}}_t(q_t)p(u_{t+1} \mid q_{t-1})\gamma_{t+1}(q_{t+1})A_{q_t, q_{t+1}}}{\alpha^{\text{norm}}_t(q_{t+1})} \times \frac{\sum_{q_t}\alpha_t(q_t)}{\sum_{q_{t+1}}\alpha_{t+1}(q_{t+1})}\\
 	\end{split}
 \end{equation}
+
+Au niveau de l'implémentation, on notera qu'on utilise les \(\alpha^{\text{norm}}\) qui ne changent aucunement la formule pour \(\gamma\). Pour \(\xi\), il faut prendre en compte la différence de normalisation entre les \(\alpha^{\text{norm}}\).
+
+
+\subsection{}
+
+La partie d'implémentation est effectuée toujours en python dans la classe \textit{HMM}.
+
+\subsection{}
+
+\begin{figure}[H]
+	\centering
+	\includegraphics[width = 1.0\textwidth]{5_em_llh}
+	\caption{Log-likelihood}
+	\label{fig_5_llh_em}
+\end{figure}
+
+La log-vraisemblance en apprentissage et en test est représentée en figure~\ref{fig_5_llh_em}. On constate qu'il suffit de 2-3 itérations de l'algorithme EM pour converger vers de nouveaux paramètres, en partant de ceux déterminés par mixture de gaussienne. On constate également que la vraisemblance en apprentissage est toujours supérieure à la vraisemblance de test, ce qui constitue un résultat attendu.
+
 
 
 \end{document}
