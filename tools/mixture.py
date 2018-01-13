@@ -2,6 +2,7 @@
 
 import numpy as np
 from scipy.stats import multivariate_normal
+from tqdm import tqdm
 
 class K_means(object):
     """
@@ -75,6 +76,15 @@ class GM(object):
             raise ValueError("Invalid value for 'covariance_type': %s "
                              "'covariance_type' should be in "
                              "['general', 'isotropic']" % self.covariance_type)
+    def _log_likelihood_incomplete(self, x):
+        """
+        Compute likelihood of x given self parameters
+        """
+        gaussiens = np.array([multivariate_normal(self.mu[i].reshape(-1),
+                                              self.sigma[i]
+                                            ).pdf(x) for i in range(self.K)])
+        return np.log((gaussiens * self.pi).sum(axis = 0)).sum()
+
     def _e_step(self, x):
         """
         Expectation step
@@ -210,3 +220,59 @@ def gen_arti(centerx = 1,
         data = data[idx,:]
         y = y[idx]
     return data,y
+
+def best_model(n_iter, model_type, D):
+    """
+    Compute and returns best parameters for the model_type selected
+    n_iter: number of iterations
+    model_type: isotropic or general
+    D: dictionary of train data and test data
+    """
+
+    # Train data
+    datax = D['data'].as_matrix()
+    K = 4
+
+    # List to save results
+    likelihood = []
+    Cen = {0 : [], 1 : [], 2 : [], 3 : []}
+    Sigma = {0 : [], 1 : [], 2 : [], 3 : []}
+    pi = {0 : [], 1 : [], 2 : [], 3 : []}
+    model = []
+
+    # Iterate over n_iter times
+    for k in tqdm(range(int(n_iter))):
+        classifier = GM(K, covariance_type = model_type)
+        # Fit the classifier
+        classifier.fit(datax)
+        A = classifier.q.argmax(axis = 0).astype(int)
+        C = classifier.mu.reshape(K, 2)
+        model.append(classifier)
+        for i,j in enumerate(np.arctan2(C[:, 0], C[:, 1]).argsort()):
+            Cen[i].append(C[j])
+            Sigma[i].append(classifier.sigma[j])
+            pi[i].append(classifier.pi[j])
+
+        likelihood.append(classifier.L[-1])
+
+    print ("Moyenne de vraissemblance : {} - et écart-type : {}"\
+           .format(np.mean(likelihood),np.std(likelihood)))
+    for k in Cen.keys():
+        Cen[k] = np.array(Cen[k])
+        print ("----- Centroide 1 -----")
+        print ("moyenne  : {}\nécart-type : {}"\
+           .format(np.mean(Cen[k], axis = 0), np.std(Cen[k], axis = 0)))
+
+    # Better result = better likelihood
+    best = np.array(likelihood).argmax()
+
+    # Dictionary of best parameters
+    best_params = {
+    "mu" : np.array([Cen[i][best] for i in Cen.keys()]),
+    "sigma": np.array([Sigma[i][best] for i in Sigma.keys()]),
+    "pi" : np.array([pi[i][best] for i in pi.keys()]),
+    "likelihood_train": likelihood[best],
+    "likelihood_test":     model[best]._log_likelihood_incomplete(D['test'].as_matrix())
+    }
+
+    return best_params
