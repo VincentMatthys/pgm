@@ -337,6 +337,16 @@ Le résultat du décodage de Viterbi sur les 100 premiers points des données de
 	\label{fig_8_viterbi}
 \end{figure}
 
+\subsection{}
+
+Le calcul des probabilités marginales de chaque état \(q_t\) étant donnée la séquence complète des observations \(\bm{u}\) a été décrite en équation~\eqref{filtering_eq} lors de l'\(\alpha-\beta\) récursion. On utilise les paramètres \(\alpha\) et \(\beta\) obtenus après convergence de EM sur les données d'entrainement, et on représente les marginales de chacun des 4 états des 100 premiers points du jeu de test en figure~\ref{fig_9_filtering}. On peut y observer une alternance presque exclusive des états 2 et 3.
+
+\begin{figure}[H]
+	\centering
+	\includegraphics[width = 1.0\textwidth]{9_filtering}
+	\caption{Probabilités marginales des états sur le jeu de test pour les 100 premiers points}
+	\label{fig_9_filtering}
+\end{figure}
 
 
 
