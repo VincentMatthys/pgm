@@ -320,4 +320,32 @@ class HMM(object):
         }
         return params
 
-#     def _EM_evolution_train_test(self, A = None, pi = None, emission = None):
+    def _viterbi(self, u, pi, A, O):
+        """
+        Algorithme de Viterbi (en log) pour le décodage des séquences d'états:
+        argmax_q p(u, q | theta)
+        :param u: [obs1, ... , obsT] (UNE séquence)
+        :param A: param HMM
+        :param O: param HMM obs
+        :return: q (la séquence d'état la plus probable), estimation de p(u|lambda)
+        """
+        T = len(u)
+        N = len(pi)
+        logA = np.log(A)
+        logdelta = np.zeros((N, T))
+        psi = np.zeros((N, T), int)
+        Q = np.zeros(T, int)
+        logdelta[:,0] = np.log(pi) + np.log(np.array([O[q].pdf(u[0]) for q in range(N)]))
+        #forward
+        for t in range(1, T):
+            logdelta[:, t] = (logdelta[:, t - 1].reshape(N, 1) + logA).max(0)\
+                           + np.log(np.array([O[q].pdf(u[t]) for q in range(N)]))
+            psi[:, t] = (logdelta[:, t - 1].reshape(N, 1) + logA).argmax(0)
+        # backward
+        logp = logdelta[:, -1].max()
+        Q[T-1] = logdelta[:, -1].argmax()
+        for i in range(2, T + 1):
+            Q[int(T - i)] = psi[Q[T - i + 1], int(T - i + 1)]
+        return Q, logp
+    
+    
