@@ -226,12 +226,32 @@ La partie d'implémentation est effectuée toujours en python dans la classe \te
 \begin{figure}[H]
 	\centering
 	\includegraphics[width = 1.0\textwidth]{5_em_llh}
-	\caption{Log-likelihood}
+	\caption{Evolution de la log-vraisemblance en fonction du nombre d'itérations de EM pour le modèle de HMM}
 	\label{fig_5_llh_em}
 \end{figure}
 
 La log-vraisemblance en apprentissage et en test est représentée en figure~\ref{fig_5_llh_em}. On constate qu'il suffit de 2-3 itérations de l'algorithme EM pour converger vers de nouveaux paramètres, en partant de ceux déterminés par mixture de gaussienne. On constate également que la vraisemblance en apprentissage est toujours supérieure à la vraisemblance de test, ce qui constitue un résultat attendu.
 
+\subsection{}
+
+Les valeurs de log-vraisemblance des différents modèles rencontrés sont présentées en table~\ref{tab_6_llh}. On constate que le modèle avec la meilleure log-vraisemblance est le modèle chaine de Markov, suivi du modèle de mixture de gaussiennes générales. C'est un résultat attendu, puisque l'odre correspond avec le degré de complexité du modèle : plus celui-ci est complexe (c'est-à-dire avec de degré de liberté), plus il peut coller aux données. On constate également que la log-vraisemblance sur les données de test est inférieure à celle obtenue sur les données d'entrainement, à l'exception du modèle de mixture gaussiennes isotropiques pour lequel la différence observée est minime entre les données d'entrainement et de test. On notera cette vraisemblance de GM isotropic en test est la seule vraisemblance différente de celle notée dans la solution du devoir 2 fourni par M. Obozinski, dans laquelle la vraissemblance en question est de \(-2.6841~10^3\) et est bien  inférieure à celle obtenue pour le même modèle sur les données d'entrainement.
+
+\begin{table}
+	\centering
+	\begin{tabular}{*{3}{c}}
+		\toprule
+		Modèle       & Donées d'entraînement & Données de test  \\
+		\midrule
+		isotropic GM & -2.6396               & -2.6146          \\
+		general GM   & -2.3277               & -2.4092          \\
+		HMM          & \(\bm{-1.8968}\)      & \(\bm{-1.9555}\) \\
+		\bottomrule
+	\end{tabular}
+	\caption{Valeur \(\times10^3\) de la log-vraiemblance des données d'apprentissage et des données de test pour différents modèles. GM signifie Gaussian Mixture (isotropic pour des covariances diagonales, general pour des covariances quelconques), HMM signifie Hidden Markov Model}
+	\label{tab_6_llh}
+\end{table}
+
+\subsection{}
 
 
 \end{document}
