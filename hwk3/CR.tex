@@ -363,13 +363,13 @@ L'état le plus probable pour chacun de ces mêmes points est représenté en fi
 
 \begin{figure}[H]
 	\centering
-	\begin{subfigure}[b]{0.90\textwidth}
+	\begin{subfigure}[b]{0.85\textwidth}
 		\centering
 		\includegraphics[width = 1.0\textwidth]{11_viterbi_decoding_test}
 		\caption{Décodage selon Viterbi}
 	\end{subfigure}
 	\hfill
-	\begin{subfigure}[b]{0.90\textwidth}
+	\begin{subfigure}[b]{0.85\textwidth}
 		\centering
 		\includegraphics[width = 1.0\textwidth]{10_marginals}
 		\caption{Décodage selon les probabilités marginales}
@@ -380,5 +380,8 @@ L'état le plus probable pour chacun de ces mêmes points est représenté en fi
 
 Les décodages obtenus par Vierbi et par les probabilités marginales pour les 100 premiers points du jeu de test sont présentés en figure~\ref{fig_11_decodage_test}. On remarque que les décoadges par les deux méthodes sont identiques.
 
+\subsection{}
+
+Si le nombre d'états n'était pas connu, il faudrait faire une sélection de modèle en comparant la log-vraisemblance obtenue par les différents modèles HMM (à différents nombre d'états) et conserver le modèle donnant la meilleure vraisemblance en test.
 
 \end{document}
