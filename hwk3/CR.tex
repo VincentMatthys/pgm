@@ -328,12 +328,12 @@ D'où le pseudo-code suivant :
 
 \subsection{}
 
-Le résultat du décodage de Viterbi sur les 100 premiers points des données de test avec les paramètres du modèle HMM obtenus par EM sur les données d'entrainement est présenté en figure~\ref{fig_8_viterbi}. On a également superposé les centres des clusters ainsi que l'ellipsiode correspondant à \(90~\%\) de la masse de chaque gaussienne associée. On constate que l'attribution des points à chaque cluster est cohérent avec les résultats précédemment obtenus lors de la modélisation par mixture de gaussiennes générales.
+Le résultat du décodage de Viterbi sur les 100 premiers points des données d'entrainement avec les paramètres du modèle HMM obtenus par EM sur ces mêmes données est présenté en figure~\ref{fig_8_viterbi}. On a également superposé les centres des clusters ainsi que l'ellipsiode correspondant à \(90~\%\) de la masse de chaque gaussienne associée. On constate que l'attribution des points à chaque cluster est cohérent avec les résultats précédemment obtenus lors de la modélisation par mixture de gaussiennes générales.
 
 \begin{figure}[H]
 	\centering
 	\includegraphics[width = 1.0\textwidth]{8_viterbi_decoding}
-	\caption{Visualisation de la séquence d'états la plus probable sur les 100 premiers points du jeu de test obtenu par décodage de Viterbi}
+	\caption{Visualisation de la séquence d'états la plus probable sur les 100 premiers points du jeu d'entrainement obtenu par décodage de Viterbi}
 	\label{fig_8_viterbi}
 \end{figure}
 
@@ -347,6 +347,9 @@ Le calcul des probabilités marginales de chaque état \(q_t\) étant donnée la
 	\caption{Probabilités marginales des états sur le jeu de test pour les 100 premiers points}
 	\label{fig_9_filtering}
 \end{figure}
+
+\subsection{}
+
 
 
 
