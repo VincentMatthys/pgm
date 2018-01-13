@@ -322,12 +322,12 @@ class HMM(object):
 
     def _viterbi(self, u, pi, A, O):
         """
-        Algorithme de Viterbi (en log) pour le décodage des séquences d'états:
+        Viterbi decoding algorithm in log
         argmax_q p(u, q | theta)
-        :param u: [obs1, ... , obsT] (UNE séquence)
+        :param u: [obs1, ... , obsT]
         :param A: param HMM
         :param O: param HMM obs
-        :return: q (la séquence d'état la plus probable), estimation de p(u|lambda)
+        :return: q (most likely sequence of states), estimation of p(u|theta)
         """
         T = len(u)
         N = len(pi)
@@ -348,4 +348,13 @@ class HMM(object):
             Q[int(T - i)] = psi[Q[T - i + 1], int(T - i + 1)]
         return Q, logp
     
-    
+    def _filtering(self, u):
+        """
+        Filtering inference task log p(q_t | u)
+        """
+        
+        alphas = self._alpha_recursion(u)
+        betas = self._beta_recursion(u)
+        
+        p_u = logsumexp(alphas[:, -1])
+        return alphas + betas - p_u
