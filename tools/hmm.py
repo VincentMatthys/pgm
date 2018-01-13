@@ -149,7 +149,7 @@ class HMM(object):
             self._alpha_beta_recusion(u)
         return self.alphas[:, t] + self.betas[:, t] - logsumexp(self.alphas[:, -1])
 
-    def _smoothing_all(self, check = True, u = None):
+    def _smoothing_all(self, check = True, u = None, update = True):
         """
         Inference task: smoothing
         Find the distribution of the hidden state at t given the actual observations
@@ -159,10 +159,13 @@ class HMM(object):
                 raise ValueError("Observations are needed to compute smoothing from sracth")
             else:
                 self._alpha_beta_recusion(u)
-
-        self.smoothing_all = np.array([self._smoothing(t, check = False) for t in range(self.T)]).T
+        # Compute smoothing
+        temp = np.array([self._smoothing(t, check = False) for t in range(self.T)]).T
+        if update == True:
+            self.smoothing_all = temp
         if (np.round(np.exp(self.smoothing_all).sum(0), 2) != 1).any():
             raise ValueError("Numerical approximations failed, please be careful with next results")
+        return temp
 
     def _gamma_recursion(self, u, update = False):
         """
@@ -187,6 +190,17 @@ class HMM(object):
             self.gammas = gammas
         return gammas
 
+    def _unit_test_smoothing(self, u):
+        """
+        Compare result for gamma and smoothing (using alphas and betas)
+        """
+        
+        if (np.round(np.exp(self._smoothing_all(check = True, u = u, update = False)) \
+                     - self._gamma_recursion(u, update = False), 3) == 0).all():
+            return True
+        else:
+            return False
+        
     def _xi_recursion(self, u, update = False):
         """
         Xi recursion
