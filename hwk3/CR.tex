@@ -350,7 +350,35 @@ Le calcul des probabilités marginales de chaque état \(q_t\) étant donnée la
 
 \subsection{}
 
+L'état le plus probable pour chacun de ces mêmes points est représenté en figure~\ref{fig_10_most_likely}. On y constate clairement l'alternance entres les états 2 et 3, entrecoupés de périodes de 2 à 9 points en état 4.
 
+\begin{figure}[H]
+	\centering
+	\includegraphics[width = 1.0\textwidth]{10_most_likely}
+	\caption{Etat le plus probable pour chacun des 100 premiers points du jeu de test}
+	\label{fig_10_most_likely}
+\end{figure}
+
+\subsection{}
+
+\begin{figure}[H]
+	\centering
+	\begin{subfigure}[b]{0.90\textwidth}
+		\centering
+		\includegraphics[width = 1.0\textwidth]{11_viterbi_decoding_test}
+		\caption{Décodage selon Viterbi}
+	\end{subfigure}
+	\hfill
+	\begin{subfigure}[b]{0.90\textwidth}
+		\centering
+		\includegraphics[width = 1.0\textwidth]{10_marginals}
+		\caption{Décodage selon les probabilités marginales}
+	\end{subfigure}
+	\caption{Décodage des 100 premiers points du jeu de test suivant Viterbi ou les probabilités marginales}
+	\label{fig_11_decodage_test}
+\end{figure}
+
+Les décodages obtenus par Vierbi et par les probabilités marginales pour les 100 premiers points du jeu de test sont présentés en figure~\ref{fig_11_decodage_test}. On remarque que les décoadges par les deux méthodes sont identiques.
 
 
 \end{document}
