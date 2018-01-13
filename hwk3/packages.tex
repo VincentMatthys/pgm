@@ -2,6 +2,9 @@
 \usepackage[T1]{fontenc}
 \usepackage[french]{babel}
 
+\usepackage{multicol}
+\usepackage{fullpage}
+
 % ------------------------- Color table ----------------------------------------
 \usepackage{multirow}
 \usepackage[table]{xcolor}
@@ -12,7 +15,7 @@
 \usepackage{amscd}
 \usepackage{amsthm}
 \usepackage{physics}
-\usepackage[left=2.2cm,right=2.2cm,top=2cm,bottom=2cm]{geometry}
+\usepackage{fullpage}
 \usepackage{textcomp,gensymb} %pour le °C, et textcomp pour éviter les warning
 \usepackage{graphicx} %pour les images
 \usepackage{caption}
@@ -38,8 +41,13 @@
 \usepackage{bm}
 \usepackage{mathtools}
 \usepackage[Symbol]{upgreek} % For pi \uppi different from /pi
-\newcommand{\R}{\mathbb{R}} % For Real space
 
+% For pseudo-code
+\usepackage[ruled,vlined,linesnumbered,noresetcount]{algorithm2e}
+
+\newcommand{\R}{\mathbb{R}} % For Real space
+\usepackage{tikz}
+\usetikzlibrary{bayesnet} %library to draw graphical models1
 % ------------------------------------------------------------------------------
 
 
@@ -54,8 +62,9 @@
 % ------------------------------------------------------------------------------
 
 % ------------------------- Blbiographie --------------------------------------
-% \usepackage[backend=biber, style=ieee]{biblatex}
-% \addbibresource{biblio.bib}
+\usepackage[backend=biber, style=ieee]{biblatex}
+\addbibresource{biblio.bib}
+\usepackage{csquotes}
 % ------------------------------------------------------------------------------
 
 
@@ -64,8 +73,12 @@
 \usepackage{float}
 
 \usepackage{graphicx} % for graphicspath
+% \graphicspath{{../images/}}
 
 \usepackage{array,tabularx}
 \newcolumntype{L}[1]{>{\raggedright\let\newline\\\arraybackslash\hspace{0pt}}m{#1}}
 \newcolumntype{C}[1]{>{\centering\let\newline\\\arraybackslash\hspace{0pt}}m{#1}}
 \newcolumntype{R}[1]{>{\raggedleft\let\newline\\\arraybackslash\hspace{0pt}}m{#1}}
+
+
+\usepackage{hyperref}

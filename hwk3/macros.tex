@@ -6,5 +6,10 @@
 % Alpha / Numbers for sections
 \renewcommand{\thesubsubsection}{\arabic{section}.\arabic{subsection}.\alph{subsubsection})}
 
+% For fixed width node in bayesnet
+\newcommand{\fixedwidth}[2]{%
+	\makebox[\widthof{$#1$}][l]{\vphantom{$#1$}\smash{$#1#2$}}%
+}
+
 % % Norm
 % \newcommand{\norm}[1]{\left\lVert#1\right\rVert}

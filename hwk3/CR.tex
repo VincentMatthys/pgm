@@ -2,6 +2,8 @@
 \input{packages}
 \input{macros}
 
+\usetikzlibrary{positioning}
+
 % ------------------------ General informations --------------------------------
 \title{Math M2 Probabilistic graphical models 2017/2018}
 \author{Vincent Matthys}
@@ -38,6 +40,45 @@
 On désignera par \(M\) le nombre d'états cachés (4 dans notre cas).
 On notera \(\bm{u} = \{u_t\}_{t \in [\![1;T]\!]}\), \(\bm{q} = \{q_t\}_{t \in [\![1;T]\!]}\), \(\bm{\theta} = \left(\pi, A, \bm{\mu}, \bm{\Sigma}\right)\) où \(\bm{\mu} = \{\mu_k\}_{k \in [\![1;M]\!]}\) et \(\bm{\Sigma} = \{\Sigma_k\}_{k \in [\![1;M]\!]}\).
 On utilisera également le \textit{one-hot encoding} sur \(\bm{q}\), de sorte que \(q_t^i\), variable binaire, représente la i\up{e} composante de \(q_t\).
+
+\begin{figure}[H]
+	\centering
+	\begin{tikzpicture}[x=1.6cm,y=1.1cm]
+		\begin{scope}[auto, every node/.style={draw,circle,minimum size=3em,inner sep=1},node distance=2cm]
+			% Latent nodes
+			\node[latent](q1){$q_1$};
+			\node[latent, right=of q1](q2){$q_2$};
+			\node[latent, right=of q2](dots1){$\dots$};
+			\node[latent, right=of dots1](qt){$q_t$};
+			\node[latent, right=of qt](qt1){$q_{t+1}$};
+			\node[latent, right=of qt1](dots2){$\dots$};
+			\node[latent, right=of dots2](qT){$q_T$};
+
+			\edge[]{q1}{q2};
+			\edge[]{q2}{dots1};
+			\edge[]{dots1}{qt};
+			\edge[]{qt}{qt1};
+			\edge[]{qt1}{dots2};
+			\edge[]{dots2}{qT};
+
+			% observed nodes
+			\node[obs, below=of q1](u1){$u_1$};
+			\node[obs, below=of q2](u2){$u_2$};
+			\node[obs, below=of qt, minimum size=0.8cm](ut){$u_t$};
+			\node[obs, below=of qt1, minimum size=0.8cm](ut1){$u_{t+1}$};
+			\node[obs, below=of qT](uT){$u_T$};
+
+			\edge[]{q1}{u1}
+			\edge[]{q2}{u2}
+			\edge[]{qt}{ut}
+			\edge[]{qt1}{ut1}
+			\edge[]{qT}{uT}
+		\end{scope}
+	\end{tikzpicture}
+
+	\caption{Modèle graphique représentant le HMM considéré}
+	\label{fig_hmm_graph}
+\end{figure}
 
 \subsection{}
 
@@ -202,7 +243,7 @@ L'implémentation du calcul des \(\gamma\) et \(\xi\) est succintement détaill�
 		\gamma_t(q_t) &= p(q_t \mid u_1, \dots, u_T)\\
 		&= \sum_{q_{t+1}}p(q_t, q_{t+1} \mid u_1, \dots, u_T)\\
 		&= \sum_{q_{t+1}} \frac{\alpha_t(q_t)A_{q_t, q_{t+1}}}{\sum_{q_t}\alpha_t(q_t)A_{q_t, q_{t+1}}}\gamma_{t+1}(q_{t+1})\\
-		&= \sum_{q_{t+1}} \frac{{\alpha^{\text{norm}}}_{,t}(q_t)A_{q_t, q_{t+1}}}{\sum_{q_t}{\alpha^{\text{norm}}}_{,t}(q_t)A_{q_t, q_{t+1}}}\gamma_{t+1}(q_{t+1})\\
+		&= \sum_{q_{t+1}} \frac{{\alpha_t^{\text{norm}}}(q_t)A_{q_t, q_{t+1}}}{\sum_{q_t}{\alpha_t^{\text{norm}}}(q_t)A_{q_t, q_{t+1}}}\gamma_{t+1}(q_{t+1})\\
 	\end{split}
 \end{equation}
 
@@ -252,6 +293,41 @@ Les valeurs de log-vraisemblance des différents modèles rencontrés sont prés
 \end{table}
 
 \subsection{}
+
+L'algorithme de décodage de Viterbi permet de déterminer la séquence d'états la plus probable  \(\bm{q} = q_1,\dots,q_T\) étant donnée une séquence d'observation \(\bm{u} = u_1,\dots,u_t\) pour des paramètres de modèle donnés \(\bm{\theta}\). Au lieu de calculer la log-vraisemblance d'une séquence d'états étant donnée les observations, ce qui reviendrait à faire une \(\alpha\) récursion pour chaque séquence d'états, on utilise l'algorithme \(max-product\) sur le graphe du modèle de Markov en figure~\ref{fig_hmm_graph}, en prenant comme racine de l'arbre le noeud \(q_1\). Ainsi, on obtient la relation de récurence suivante :
+
+\begin{align}
+	\delta_{t\rightarrow t+1}(q_{t+1})      & = \max_{q_t}\left(\delta_{(t-1)\rightarrow t}(q_t) A_{q_t,q_{t+1}} \right) p(u_{t+1} \mid q_{t+1})                    \\
+	\log \delta_{t\rightarrow t+1}(q_{t+1}) & = \max_{q_t}\left(\log \delta_{(t-1)\rightarrow t}(q_t) + \log A_{q_t,q_{t+1}} \right) + \log p(u_{t+1} \mid q_{t+1})
+\end{align}
+
+Une fois estimée ce message pour chaque point, on considère la succession d'états qui a permis d'obtenir ce message, notée \(\bm{q}^* = \operatorname{arg}\max_{\bm{q}} p(\bm{q} \mid \bm{u})\), que l'on obtient en partant du noeud \(q_T\) :
+
+\begin{align}
+	q_T^* & = \operatorname{arg}\max_{q_T} \delta_{(T-1)\rightarrow T}(q_T)                                                      \\
+	q_t^* & = \operatorname{arg}\max_{q_t} \delta_{(t-1)\rightarrow t}(q_t) A_{q_t, q_{t+1}^*} \quad \forall t \in [\![1;T-1]\!]
+\end{align}
+
+D'où le pseudo-code suivant :
+
+\begin{algorithm}[H]
+	\SetAlgoLined
+	\KwResult{$\bm{q^*}$}
+	$\delta_1(j) = \pi_j p(u_1
+		\mid q_1 = j)$\;
+	\For{$i=2$ \thinspace to T}{
+		$\delta_t(j) = \max_i \left(\delta_{t-1}(i) + \log A_{i,j}\right) + \log p(u_t \mid q_t = j)$\;
+	}
+	$q_T^* = \operatorname{arg}\max_{j} \delta_T(j)$\;
+	\For{$i=T-1$ \thinspace to 1}{
+		$q_t^* = \operatorname{arg}\max_{j} \delta_{t}(j) A_{j, q_{t+1}^*}$\;
+	}
+	\caption{Viterbi decoding}
+\end{algorithm}
+
+
+\subsection{}
+
 
 
 \end{document}
