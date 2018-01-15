@@ -1,0 +1,279 @@
+\documentclass[12pt,a4paper,onecolumn]{article}
+\input{packages}
+\input{macros}
+
+% ------------------------ General informations --------------------------------
+\title{PGM report \\ Latent Dirichlet Allocation}
+\author{Quentin LEROY, Vincent MATTHYS, Bastien PONCHON}
+\date{December 2017}
+
+% ------------------------------------------------------------------------------
+
+
+\begin{document}
+
+\begin{center}
+
+	\rule[11pt]{5cm}{0.5pt}
+
+	\textbf{\Large \textsc{PGM Report} \\ Latent Dirichlet Allocation}
+	\vspace{0.5cm}
+
+    Quentin LEROY, Vincent MATTHYS, Bastien PONCHON\\
+    \{qleroy,vmatthys,bponchon\}@ens-paris-saclay.fr
+
+	\rule{5cm}{0.5pt}
+
+	\vspace{1cm}
+\end{center}
+
+
+\section{Model}
+
+Latent Dirichlet Allocation is a generative probabilistic model, presentend in~\cite{lda_2003}, for corpora of text documents or other collections of discrete data. We will use the language of text in this review.
+
+% It includes two level of latent variables: the so-called topics $\mathbf{z}$ at word-level (drawn one for each word) and the topic mixtures $\theta$ at document-level (drawn once for each document). Observed variables are the words $w$. The parameters of the model are of two kinds: $\alpha$ that governs the distributions of the topic mixtures $\theta_d$ ($d$ indexes the documents) through a Dirichlet distribution and $\beta$ that governs the distributions of words $w_n$ conditioned on a topic $z_n$ ($n$ indexes the words) through a multinomial distribution.
+
+\begin{multicols}{2}
+\begin{figure}[H]
+	\centering
+	\begin{tikzpicture}[x=1.6cm,y=1.1cm]
+		% Nodes
+
+		\node[obs, label = {[yshift = -0.1cm]word}]                   (w)      {$w_{d,n}$} ; %
+		\node[latent, label = {[yshift = -0.1cm]topic}, left=of w]    (z)      {$z_{d, n}$} ; %
+		\node[latent, label = {[align = left, yshift = -2.5cm]topic-doc\\weights}, left=of z]    (theta)  {$\theta_d$}; %
+		\node[latent, label = {[align = left, above = 0.88cm, xshift = 0.5cm]dirichlet\\ parameter}, left=of theta] (alpha) {$\alpha$};
+
+
+		% Factors
+		\factor[left=of w]     {w-f}     {below:Multi} {} {} ; %
+		\factor[left=of z]     {z-f}     {below:Multi} {} {} ; %
+		\factor[left=of theta] {theta-f} {below:Dir} {} {} ; %
+
+		\node[latent, label = {[align = left, below = -0.1cm, xshift = -1.8cm]topic-word\\weights}, above=of z] (beta)  {$\beta_k$}; %
+
+		\factoredge {alpha} {theta-f} {theta} ; %
+		\factoredge {theta}  {z-f}     {z} ; %
+		\factoredge {beta}   {w-f}   {w} ; %
+
+		\gate {w-gate} {(w-f)(w-f-caption)} {z}
+
+		\plate[inner sep = 0.35cm, xshift = -0.1cm] {plate1} {(w)(w-gate)(w)(z-f)(w-f-caption)} {$N$};
+		\plate {plate2} {(plate1)(theta)(theta-f)(theta-f-caption)} {$M$};
+		{
+		{\tikzset{plate caption/.append style={right=0.2cm of #1.south east}}
+		\plate[inner sep = 0.30cm]{plate3}{(beta)}{$K$};}
+		}
+
+
+	\end{tikzpicture}
+
+	\caption{Graphical model representation of LDA}
+	\label{fig_lda_graph}
+\end{figure}
+
+	\begin{itemize}
+		\setlength\itemsep{1pt}
+		\item[\tiny$\bullet$] \(w_{d,n} \in \{0,1\}^V\) one-hot encoded word n in document d
+		\item[\tiny$\bullet$] \(\alpha \in ]0,1]^K\) prior on the per-document topic distributions
+		\item[\tiny$\bullet$] \(\theta_d \in \R^K\) probability of topics in document d: topic mixture at document level.
+		\item[\tiny$\bullet$] \(z_{d,n} \in \{0,1\}^K\) one-hot encoded topic of \(w_{d,n}\)
+		\item[\tiny$\bullet$] \(\beta \in [0,1]^{KV}\) with \(\beta_{{z_d}_{,n},{w_d}_{,n}}\) probability of word \(w_{d,n}\) given the topic \(z_{d,n}\)
+	\end{itemize}
+
+\end{multicols}
+
+A document is assumed to be a \textit{bag of words} that is to say that the order of the words in the document does not matter. In a statistical point of view, words $\mathbf{w}=\{w_1,\dots,w_N\}$ being considered as random variables, it amounts to stating infine exchangeability of the collection of words $\mathbf{w}$. Actually the topics $\mathbf{z}$ are similarly exchangeable with a document. De Finetti representation theorem therefore concludes that the distribution $p(\mathbf{\mathbf{w}, \mathbf{z}})$ is a mixture over a latent parameter $\theta$, that is that we draw a parameter $\theta$ and then all the variables are drawn independently conditioned on this parameter. The joint distribution over topics and words of one document of $N$ words reads:
+$$p(\mathbf{w}, \mathbf{z})=\int \Big(\prod_{n=1}^N p(z_n|\theta)p(w_n|z_n)\Big)p(\theta)d\theta$$
+% LDA makes use of the exchangeability of the words and topics within documents and this representation of the joint distribution over words and topics. Moreover it adds a Dirichlet prior over $\theta$ and model the conditional distributions $p(w_n|z_n)$ as multinomials parameterized by $\beta$ as the graphical models shows in Figure~\ref{fig_lda_graph} as well as the following N-word document generation procedure makes clear.
+
+Latent variable models usually take the advantage of the simplicity and flexibility of introducing unobserved variable to cut modeling into subproblems. For example Gaussian Mixture Models introduce a \textit{soft-assignment} variable that permit to group observed variables and model according to the group. In the LDA model at the word-level the topic latent variable $z$ reflects the intuitive idea that words are drawn according to a fix number of different discrete processes, the number of topics. The topic mixture $\theta$ sampled once per document is another latent variable that governs the distribution over topics for one document, the topic mixture at document-level favors certain topics over other.
+
+
+\section{Mean-field variational inference}
+\label{sec:inference}
+
+The inferential problem tackled in the original article is that of computing the conditional distribution of the hidden variables ($\theta$ and $\mathbf{z}$):
+
+$$p(\theta, \mathbf{z} \mid \mathbf{w}, \alpha, \beta) = \frac{p(\theta, \mathbf{z}, \mathbf{w} \mid \alpha, \beta)}{p(\mathbf{w} \mid \alpha, \beta)}$$
+
+However it is intractable since computing the marginal $p(\bm{w} \mid \alpha, \beta)$ involves integrating out the topic mixture $\theta$ and summing over the topics $\bm{z}$ a quantity coupling $\theta$ and $\beta$. The nodes $\bm{w}$ in Figure~\ref{fig_lda_graph} have several parents that need to be marginalized out ($\theta$ and $\beta$), this makes the marginal intractable. In general when we are presented with a non-tree like graphical model we have to resort to approximation techniques; sum-product algorithm for exact inference does not work.
+
+We wish to approximate the intractable $p(\theta, \bm{z} \mid \bm{w}, \alpha, \beta)$. Two kinds of approximate inference techniques can be undertaken to solve this problem: stochastic techniques involving sampling such as Gibbs sampling, and variational inference which is deterministic. Variational inference also comes with several flavors. In general it consists of approaching the lower-bound \ref{eq_llh} of the log-likelihood using Jensen's inequality thanks to a variational distribution taken from a restricted family of distributions, in this case, the mean-field family factorizing according to the graph in figure~\ref{fig_lda_variational}.
+
+\begin{align}
+	\log p(\bm{w} \mid \alpha, \beta) \geq \mathbb{E}_q[\log p(\bm{\theta}, \bm{z}, \bm{w} \mid \alpha, \beta)] - \mathbb{E}_q[\log q(\bm{\theta},\bm{z})] = \mathcal{L}(q ; \alpha, \beta) \label{eq_llh}
+\end{align}
+
+% \clearpage
+\begin{multicols}{2}
+	\begin{figure}[H]
+		\centering
+		\begin{tikzpicture}[x=1.6cm,y=1.1cm]
+			% Nodes
+
+			\node[latent, label = {[yshift = -0.1cm]}]                   (z)      {$z_{d,n}$} ; %
+			\node[latent, label = {[align = left, left = 1cm, yshift = -0.3cm]variational\\topic-word\\distribution}, left=of z]    (phi)      {$\phi_{d, n}$} ; %
+			\node[latent, label = {[align = left, yshift = -2.5cm]}, below=of z]    (theta)  {$\theta_d$}; %
+			\node[latent, label = {[align = left, yshift = -0.2cm, left = 1cm]variational\\topic-doc\\distribution}, left=of theta] (gamma) {$\gamma_d$};
+			% Factors
+			\factor[left=of z]     {z-f}     {Multi} {} {} ; %
+			\factor[left=of theta] {theta-f} {Dir} {} {} ; %
+
+			\factoredge {gamma} {theta-f} {theta} ; %
+			\factoredge {phi}  {z-f}     {z} ; %
+
+			\plate[inner sep = 0.35cm, xshift = -0.1cm] {plate1} {(phi)(z)(z-f)(z-f-caption)} {$N$};
+			\plate {plate2} {(plate1)(theta)(theta-f)(theta-f-caption)} {$M$};
+		\end{tikzpicture}
+
+		\caption{Graph of considered mean-field family}
+		\label{fig_lda_variational}
+	\end{figure}
+
+	Specifying the form of \(q(\bm{\theta}, \bm{z})\) using the mean-field family with variational parameters \(\bm{\gamma}\) and \(\bm{\phi}\), factorizing according to the graph in figure~\ref{fig_lda_variational}:
+
+	\begin{align}
+		q(\bm{\theta}, \bm{z} \mid \bm{\phi}, \bm{\gamma}) & = q(\bm{\theta} \mid \bm{\gamma}) q(\bm{z} \mid \bm{\phi})                               \\
+		                                                   & = \prod_{d=1}^M q(\theta_d \mid \gamma_d) \prod_{n=1}^N q(z_{d,n} \mid \phi_{d,n})\notag
+	\end{align}
+\end{multicols}
+
+
+ The mergin of inequality~\ref{eq_llh} is the Kullback-Leibler divergence between the variational distribution $q(\theta, \mathbf{z}|\phi, \gamma)$ and the target distribution $p(\theta, \mathbf{z}|\mathbf{w}|\alpha, \beta)$: $\mathcal{D}(q(\theta, \mathbf{z}|\gamma, \phi)||p(\theta, \mathbf{z}, \alpha, \beta))$. Thus, maximizing the lower-bound is equivalent to minimizing the KL divergence so that the variational distribution adjusts to the target p as desired. The authors show how to maximize the right-side of the inequality by optimizing with respect to $\phi$ then with respect to $\gamma$ and it follows two update equations of $\phi$
+and $\gamma$ that are coupled so are solved with an iterative fixed point algorithm. It leads to the following E-step:
+
+\begin{equation*}
+(\gamma_d, \phi_d) = \operatorname{arg}\max_{(\bm{\gamma}, \bm{\phi})} \mathbb{E}_{q}\left[\log p(\bm{\theta},\bm{z}, \bm{w}_d \mid \bm{\alpha}, \bm{\beta})\right] - \mathbb{E}_{q}\left[\log q(\bm{\theta}, \bm{z} \mid \gamma, \phi)\right]              \tag{variational E-step}
+\end{equation*}
+
+\section{Parameters estimation}
+
+%  Before being able to do inference on new documents, we have to train the model on our corpus of documents, by finding the parameters $\alpha$ and $\beta$ that maximize the marginal log likelihood of the data $\sum_{d=1}^M log(p(\bm{w}_d|\alpha, \beta)$. But as stated above we have a lower bound on this likelihood, depending on $\alpha$ and $\beta$ and on (approximate) variational distributions of parameters $\gamma_d$ and $\phi_d$ (for each document $\bm{w}_d$). We can therefore use a variational EM algorithm to estimate $\alpha$ and $\beta$.
+ \begin{enumerate}
+     \item In the E-step we maximize our lower bound with regard to $\gamma_d$ and $\phi_d$ for each $d\in [1, D]$ as presented in the \textit{variational-inference} section~\ref{sec:inference}.
+     \item In the M-step, we maximize the resulting lower bound with respect to $\alpha$ and $\beta$, for which we have a closed form depending on the $\gamma_d$ and $\phi_d$.
+ \end{enumerate}
+
+ Considering the entire set of documents \(\mathbb{D} = (\bm{w_1}, \dots, \bm{w_M})\), with the hypothesis of exchangeability of documents, the likelihood~\eqref{eq_llh} can be summed for each document, leading to the following M-step for the document \(\bm{w_d}\):
+
+ \begin{equation}
+	(\bm{\alpha}, \bm{\beta})^{(t+1)} = \operatorname{arg}\min_{(\bm{\alpha}, \bm{\beta})} \sum_{d=1}^M\left(\mathbb{E}_{q}\left[\log p(\bm{\theta},\bm{z}, \bm{w}_d \mid \bm{\alpha}, \bm{\beta})\right] - \mathbb{E}_{q}\left[\log q(\bm{\theta}, \bm{z} \mid \gamma, \phi)\right]\right)          \tag{M-step}
+\end{equation}
+
+
+\section{Smoothing}
+
+Due to the sparsity of large corpora, if a document in the test corpus does contain a word which doesn't appear in train corpus, the maximum likelihood estimates of the multinomial parameters would assign 0 probability to such a word. To avoid this, a smoothing is realized by adding a Dirichlet prior for each \(\theta_{k} \in \R^V\), leading to the new grahical model~\ref{fig_lda_smooth}.
+
+\begin{figure}[H]
+	\centering
+	\begin{subfigure}[b]{0.4\textwidth}
+		\begin{tikzpicture}[x=1.4cm,y=1.1cm]
+			% Nodes
+
+			\node[obs]                   (w)      {$w_{d,n}$} ; %
+			\node[latent, left=of w]    (z)      {$z_{d, n}$} ; %
+			\node[latent, left=of z]    (theta)  {$\theta_d$}; %
+			\node[latent, left=of theta] (alpha) {$\alpha$};
+
+
+			% Factors
+			\factor[left=of w]     {w-f}     {below:Multi} {} {} ; %
+			\factor[left=of z]     {z-f}     {below:Multi} {} {} ; %
+			\factor[left=of theta] {theta-f} {below:Dir} {} {} ; %
+			\factor[left=of beta] {beta-f} {below:Dir} {} {} ; %
+
+			\node[latent, above=of z] (beta)  {$\beta_k$}; %
+			\node[latent, above=of alpha](eta){$\eta$};
+
+			\factoredge {alpha} {theta-f} {theta} ; %
+			\factoredge {theta}  {z-f}     {z} ; %
+			\factoredge {beta}   {w-f}   {w} ; %
+			\factoredge {eta}{beta-f}{beta};
+
+			\gate {w-gate} {(w-f)(w-f-caption)} {z}
+
+			\plate[inner sep = 0.35cm, xshift = -0.1cm] {plate1} {(w)(w-gate)(w)(z-f)(w-f-caption)} {$N$};
+			\plate {plate2} {(plate1)(theta)(theta-f)(theta-f-caption)} {$M$};
+			{
+			{\tikzset{plate caption/.append style={right=0.2cm of #1.south east}}
+			\plate[inner sep = 0.30cm]{plate3}{(beta)(beta-f)}{$K$};}
+			}
+
+
+		\end{tikzpicture}
+		\subcaption{Graph of smoothed model}
+	\end{subfigure}
+	\hfill
+	\begin{subfigure}[b]{0.4\textwidth}
+		\begin{tikzpicture}[x=1.4cm,y=1.1cm]
+			% Nodes
+
+			\node[latent]                   (z)      {$z_{d,n}$} ; %
+			\node[latent, left=of z]    (phi)      {$\phi_{d, n}$} ; %
+			\node[latent, below=of z]    (theta)  {$\theta_d$}; %
+			\node[latent, left=of theta] (gamma) {$\gamma_d$};
+			\node[latent, right=of theta] (beta) {$\beta_k$};
+			\node[latent, above=of beta] (lambda) {$\lambda_k$};
+
+
+			% Factors
+			\factor[left=of z]     {z-f}     {Multi} {} {} ; %
+			\factor[left=of theta] {theta-f} {Dir} {} {} ; %
+			\factor[above=of beta] {beta-f} {right:Dir} {} {} ; %
+
+			\factoredge {gamma} {theta-f} {theta} ; %
+			\factoredge {phi}  {z-f}     {z} ; %
+			\factoredge {lambda}  {beta-f}     {beta} ; %
+
+			\plate[inner sep = 0.35cm, xshift = -0.1cm] {plate1} {(phi)(z)(z-f)(z-f-caption)} {$N$};
+			\plate {plate2} {(plate1)(theta)(theta-f)(theta-f-caption)} {$M$};
+			\plate {plate3} {(lambda)(beta-f-caption)(beta)} {$K$};
+
+
+		\end{tikzpicture}
+		\subcaption{Graph of variational family associated with smoothed model}
+		\label{Variational family associated}
+	\end{subfigure}
+\caption{Smooth LDA model}
+\label{fig_lda_smooth}
+\end{figure}
+
+\section{Gibbs sampling}
+
+Another way to infer the posterior distribution is to use Gibbs sampling. In the approach, the smoothed model in figure~\ref{fig_lda_smooth} is used. Calling \(w_{-(d,n)}\) and  \(z_{-(d,n)}\) respectively all the words and all the topics except the word \(w_{d,n}\) and the topic \(z_{d,n}\), the following equation can be deduced from Bayesian rule and Markov's blankets:
+
+\begin{align}
+% 	p(z_{d,n} \mid z_{-(d,n)}, \bm{w}, \alpha, \eta) &= p(z_{d,n} \mid z_{-(d,n)}, \bm{w_{-(d,n)}}, \alpha, \eta) p(w_{d,n} \mid z_{d,n}, z_{-(d,n)}, \bm{w_{-(d,n)}}, \alpha, \eta) \notag\\
+	p(z_{d,n} \mid z_{-(d,n)}, \bm{w}, \alpha, \eta) = p(z_{d,n} \mid z_{d,-n}, \alpha) p(w_{d,n} \mid z_{d,n}, z_{-(d,n)}, \bm{w_{-(d,n)}}, \eta)
+	\label{eq_gibbs_z}
+\end{align}
+
+% Appendice B.1 of lecture10
+Given \(z_{d,n} \mid \theta_d \sim Mult(\theta_d)\), and given \(\theta_d\) has a Dirichlet prior \(\alpha\), via conjugacy, the posterior of \(\theta_d\) is also a Dirichlet distribution. After \(T\) observations, noting \(N_d^k\) the number of times topic k was assigned in document d, \(\theta_d \mid \alpha, \{z_{d,t}\}_{t=1}^T \sim Dir(\alpha_1 + N_d^1, \dots, \alpha_K + N_d^K)\), and the predictive probability of a new observation \(z_{d,{T+1}}\) is given by the posterior mean of the Dirichlet distribution:
+
+\begin{align}
+	p(z_{d,{T+1}}^k = 1 \mid \alpha, \{z_{d,t}\}_{t=1}^T) = \mathbb{E}(\theta_d^k \mid \alpha, \{z_{d,t}\}_{t=1}^T) = \frac{\alpha_k + N_{d}^k}{\sum_{j=1}^K\left(\alpha_j + N_{d}^j\right)}
+\end{align}
+
+Given \(z_{d,n}^k = 1\), \(w_{d,n} \mid z_{d,n}^k = 1, \beta_k  \sim Mult(\beta_k)\), and the same reasoning applies. The resulting conditional probabilities for \(z_{d,n}\) and \(w_{d,n}\) are the following:
+
+\begin{align}
+	p(z_{d,n}^k = 1 \mid z_{d,-n}, \alpha) &= \frac{\alpha_k + N_{d,-n}^k}{\sum_{j=1}^K \left(\alpha_j + N_{d,-n}^j\right)} \label{eq_gibbs_cond_z}\\
+		p(w_{d,n} \mid z_{d,n}^k = 1, z_{-(d,n)}, \bm{w_{-(d,n)}}, \eta) &= \frac{\lambda_{w_{d,n}} + C_{k,-(d,n)}^{w_{d,n}}}{\sum_{v=1}^V\left(\lambda_v + C_{k,-(d,n)}^{v}\right)} \label{eq_gibbs_cond_w}
+\end{align}
+
+
+where \(N_{d,-n}^k\) is the number of times topic \(k\) was assigned in document \(d\) excluding word \(w_{d,n}\), and \(C_{k,-(d,n)}^{w_{d,n}}\) is the number of time the word \(w_{d,n}\) of vocabulary V is assigned to topic k in all documents, exclulding current word \(w_{d,n}\).
+
+The full conditional distribution in equation~\eqref{eq_gibbs_z} can be then sampled using equations~\eqref{eq_gibbs_cond_w} and \eqref{eq_gibbs_cond_z}:
+
+\begin{align}
+	p(z_{d,n} \mid z_{-(d,n)}, \bm{w}, \alpha, \eta) &= \frac{\alpha_k + N_{d,-n}^k}{\sum_{j=1}^K \left(\alpha_j + N_{d,-n}^j\right)}\frac{\lambda_{w_{d,n}} + C_{k,-(d,n)}^{w_{d,n}}}{\sum_{v=1}^V\left(\lambda_v + C_{k,-(d,n)}^{v}\right)}
+\end{align}
+which allows to sample from the inferred posterior distribution for Bayesian inference.
+
+
+\end{document}
