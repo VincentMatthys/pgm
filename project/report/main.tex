@@ -6,7 +6,7 @@
 \title{PGM report \\ Latent Dirichlet Allocation}
 \author{Quentin LEROY, Vincent MATTHYS, Bastien PONCHON}
 \date{December 2017}
-%https://www.youtube.com/watch?v=2pEkWk-LHmU
+% https://www.youtube.com/watch?v=2pEkWk-LHmU
 % http://www.cis.jhu.edu/~xye/papers_and_ppts/ppts/LDA_study_notes_Xugang.pdf
 % https://www.scss.tcd.ie/~jayapala/docs/Dirichlet.pdf
 % https://papers.nips.cc/paper/3455-relative-performance-guarantees-for-approximate-inference-in-latent-dirichlet-allocation.pdf
@@ -19,7 +19,8 @@
 % https://www.youtube.com/watch?v=Cbm7dbg8Nf8
 % https://www.youtube.com/watch?v=Dv86zdWjJKQ
 % https://www.youtube.com/watch?v=FkckgwMHP2s
-
+% https://drive.google.com/file/d/0BzszAhwjzfKgNDVlZDJlMGUtYWY0ZS00ZTY4LTkxNzAtYWY0Mzk3OTk2NGI0/view?ddrp=1&hl=en
+% https://stats.stackexchange.com/questions/126268/how-do-you-estimate-alpha-parameter-of-a-latent-dirichlet-allocation-model
 % ------------------------------------------------------------------------------
 
 
@@ -101,7 +102,7 @@ Latent Dirichlet Allocation is a generative probabilistic model, presentend in~\
 	\begin{align*}
 		p(\theta_d \mid \alpha)        & = \frac{\Gamma\left(\sum_{i=1}^K \alpha_i\right)}{\prod_{i=1}^K\Gamma(\alpha_i)}\prod_{i=1}^K \theta_{d,i}^{\alpha_i -1}
 		\\
-		p(z_{d,n} \mid \theta_d)       & = {\theta_{d,z}}_{d,n} = \prod_{k=1}^K \theta_{d,k}^{z_{d,n}^k} =\prod_{k=1}^K \prod_{j=1}^V \theta_{d,j}^{z_{d,n}^k  w_{d,n}^j} \\
+		p(z_{d,n} \mid \theta_d)       & = {\theta_{d,z}}_{d,n} = \prod_{k=1}^K \theta_{d,k}^{z_{d,n}^k} =\prod_{k=1}^K \prod_{j=1}^V \theta_{d,k}^{z_{d,n}^k  w_{d,n}^j} \\
 		p(w_{d,n} \mid z_{n,d}, \beta) & = \beta_{{z_d}_{,n},{w_d}_{,n}} = \prod_{k=1}^K \prod_{j=1}^V \beta_{k,j}^{z_{d,n}^k  w_{d,n}^j}
 	\end{align*}
 
@@ -173,10 +174,10 @@ In the EM-algorithm, this ELBO is exactly equal to the log-likelihood for a dist
 		                                                   & = \prod_{d=1}^M q(\theta_d \mid \gamma_d) \prod_{n=1}^N q(z_{d,n} \mid \phi_{d,n})\notag \\
 		                                                   & = \prod_{d=1}^M q(\theta_d \mid \gamma_d) \prod_{n=1}^N q(z_{d,n} \mid \phi_{d,n})\notag
 	\end{align}
-	\begin{align}
-		q(\theta_d \mid \gamma_d)  & = \gamma_\notag \\
-		q(z_{d,n} \mid \phi_{d,n}) & = \notag
-	\end{align}
+	% \begin{align}
+	% 	q(\theta_d \mid \gamma_d)  & = \gamma \notag \\
+	% 	q(z_{d,n} \mid \phi_{d,n}) & = \prod_{k=1}^K \phi_{d,n}^k  \notag
+	% \end{align}
 \end{multicols}
 
 The ELBO connects the variational distribution \(q(\bm{\theta}, \bm{z} \mid \bm{\phi}, \bm{\gamma})\) to the posterior distribution \(p(\bm{\theta}, \bm{z}, \bm{w} \mid \alpha, \beta)\) through the KL-divergence as shown in equation~\eqref{eq_kl}:
@@ -186,20 +187,129 @@ The ELBO connects the variational distribution \(q(\bm{\theta}, \bm{z} \mid \bm{
 	\label{eq_kl}
 \end{equation}
 
-Given fixed \(\bm{w}\) the variational parameters of the resulting variational distribution are solutions to:
+which ensures that the mean-field variational distribution used will get closed to the untractable posterior distribution once solved the variational E-step optimization problem. Given fixed \(\bm{w}\) the variational parameters are solution to:
 \begin{equation*}
 	(\bm{\gamma}, \bm{\phi}) = \operatorname{arg}\min_{(\bm{\gamma}, \bm{\phi})} \mathcal{D}(q(\bm{\theta}, \bm{z} \mid \gamma, \phi)\mid\mid p(\bm{\theta}, \bm{z} \mid \alpha, \beta)) \tag{variational E-step}
 \end{equation*}
 
-Given this resulting variational distribution, the expectation in  equation~\refeq{eq_llh} can be computed and the parameters \(\alpha\) and \(\beta\) can be estimated through the classical corresponding M-step:
+Given this resulting variational distribution, the expectation in  equation~\eqref{eq_llh} can be computed and the parameters \(\alpha\) and \(\beta\) can be estimated through the classical corresponding M-step:
 \begin{equation*}
-	(\alpha, \beta) = \operatorname{arg}\max_{(\bm{\gamma}, \bm{\phi})} \mathbb{E}_{q}\left[\log p(\bm{\theta},\bm{z}, \bm{w} \mid \alpha, \beta)\right] - \mathbb{E}_{q}\left[\log q(\bm{\theta}, \bm{z} \mid \bm{\gamma}, \bm{\phi})\right] \tag{M-step}
+	(\alpha, \beta) = \operatorname{arg}\max_{(\alpha, \beta)} \mathbb{E}_{q}\left[\log p(\bm{\theta},\bm{z}, \bm{w} \mid \alpha, \beta)\right] - \mathbb{E}_{q}\left[\log q(\bm{\theta}, \bm{z} \mid \bm{\gamma}, \bm{\phi})\right] \tag{M-step}
 \end{equation*}
 The variational E-step has to be updated as the model parameters \(\alpha\) and \(\beta\) are updated.
 
 
+Due to the sparsity of large corpora, if a document in the test corpus does contain a word which doesn't appear in train corpus, the maximum likelihood estimates of the multinomial parameters would assign 0 probability to such a word. To avoid this, a smoothing is realized by adding a Dirichlet prior for each \(\theta_{k} \in \R^V\), leading to the new grahical model~\ref{fig_lda_smooth}.
+
+\begin{figure}[H]
+	\centering
+	\begin{subfigure}[b]{0.4\textwidth}
+		\begin{tikzpicture}[x=1.4cm,y=1.1cm]
+			% Nodes
+
+			\node[obs]                   (w)      {$w_{d,n}$} ; %
+			\node[latent, left=of w]    (z)      {$z_{d, n}$} ; %
+			\node[latent, left=of z]    (theta)  {$\theta_d$}; %
+			\node[latent, left=of theta] (alpha) {$\alpha$};
+
+
+			% Factors
+			\factor[left=of w]     {w-f}     {below:Multi} {} {} ; %
+			\factor[left=of z]     {z-f}     {below:Multi} {} {} ; %
+			\factor[left=of theta] {theta-f} {below:Dir} {} {} ; %
+			\factor[left=of beta] {beta-f} {below:Dir} {} {} ; %
+
+			\node[latent, above=of z] (beta)  {$\beta_k$}; %
+			\node[latent, above=of alpha](eta){$\eta$};
+
+			\factoredge {alpha} {theta-f} {theta} ; %
+			\factoredge {theta}  {z-f}     {z} ; %
+			\factoredge {beta}   {w-f}   {w} ; %
+			\factoredge {eta}{beta-f}{beta};
+
+			\gate {w-gate} {(w-f)(w-f-caption)} {z}
+
+			\plate[inner sep = 0.35cm, xshift = -0.1cm] {plate1} {(w)(w-gate)(w)(z-f)(w-f-caption)} {$N$};
+			\plate {plate2} {(plate1)(theta)(theta-f)(theta-f-caption)} {$M$};
+			{
+			{\tikzset{plate caption/.append style={right=0.2cm of #1.south east}}
+			\plate[inner sep = 0.30cm]{plate3}{(beta)(beta-f)}{$K$};}
+			}
+
+
+		\end{tikzpicture}
+		\subcaption{Graph of smoothed model}
+	\end{subfigure}
+	\hfill
+	\begin{subfigure}[b]{0.4\textwidth}
+		\begin{tikzpicture}[x=1.4cm,y=1.1cm]
+			% Nodes
+
+			\node[latent]                   (z)      {$z_{d,n}$} ; %
+			\node[latent, left=of z]    (phi)      {$\phi_{d, n}$} ; %
+			\node[latent, below=of z]    (theta)  {$\theta_d$}; %
+			\node[latent, left=of theta] (gamma) {$\gamma_d$};
+			\node[latent, right=of theta] (beta) {$\beta_k$};
+			\node[latent, above=of beta] (lambda) {$\lambda_k$};
+
+
+			% Factors
+			\factor[left=of z]     {z-f}     {Multi} {} {} ; %
+			\factor[left=of theta] {theta-f} {Dir} {} {} ; %
+			\factor[above=of beta] {beta-f} {right:Dir} {} {} ; %
+
+			\factoredge {gamma} {theta-f} {theta} ; %
+			\factoredge {phi}  {z-f}     {z} ; %
+			\factoredge {lambda}  {beta-f}     {beta} ; %
+
+			\plate[inner sep = 0.35cm, xshift = -0.1cm] {plate1} {(phi)(z)(z-f)(z-f-caption)} {$N$};
+			\plate {plate2} {(plate1)(theta)(theta-f)(theta-f-caption)} {$M$};
+			\plate {plate3} {(lambda)(beta-f-caption)(beta)} {$K$};
+
+
+		\end{tikzpicture}
+		\subcaption{Graph of variational family associated with smoothed model}
+		\label{Variational family associated}
+	\end{subfigure}
+\caption{Smooth LDA model}
+\label{fig_lda_smooth}
+\end{figure}
+
 
 \subsection{Gibbs sampling}
+
+Using Bayesian rule and Markov's blanckets:
+
+\begin{align}
+	p(z_{d,n} \mid z_{-(d,n)}, \bm{w}, \alpha, \eta) &= p(z_{d,n} \mid z_{-(d,n)}, \bm{w_{-(d,n)}}, \alpha, \eta) p(w_{d,n} \mid z_{d,n}, z_{-(d,n)}, \bm{w_{-(d,n)}}, \alpha, \eta) \notag\\
+	&= p(z_{d,n} \mid z_{d,-n}, \alpha) p(w_{d,n} \mid z_{d,n}, z_{-(d,n)}, \bm{w_{-(d,n)}}, \eta)
+	\label{eq_gibbs_z}
+\end{align}
+
+% Appendice B.1 of lecture10
+Given \(z_{d,n} \mid \theta_d \sim Mult(\theta_d)\), and given \(\theta_d\) has a Dirichlet prior \(\alpha\), via conjugacy, the posterior of \(\theta_d\) is also a Dirichlet distribution. After \(T\) observations, noting \(N_d^k\) the number of times topic k was assigned in document d, \(\theta_d \mid \alpha, \{z_{d,t}\}_{t=1}^T \sim Dir(\alpha_1 + N_d^1, \dots, \alpha_K + N_d^K)\), and the predictive probability of a new observation \(z_{d,{T+1}}\) is given by the posterior mean of the Dirichlet distribution:
+
+\begin{align}
+	p(z_{d,{T+1}}^k = 1 \mid \alpha, \{z_{d,t}\}_{t=1}^T) = \mathbb{E}(\theta_d^k \mid \alpha, \{z_{d,t}\}_{t=1}^T) = \frac{\alpha_k + N_{d}^k}{\sum_{j=1}^K\left(\alpha_j + N_{d}^j\right)}
+\end{align}
+
+Given \(z_{d,n}^k = 1\), \(w_{d,n} \mid z_{d,n}^k = 1, \beta_k  \sim Mult(\beta_k)\), and the same reasoning applies. The resulting conditional probabilities for \(z_{d,n}\) and \(w_{d,n}\) are the following:
+
+\begin{align}
+	p(z_{d,n}^k = 1 \mid z_{d,-n}, \alpha) &= \frac{\alpha_k + N_{d,-n}^k}{\sum_{j=1}^K \left(\alpha_j + N_{d,-n}^j\right)} \label{eq_gibbs_cond_z}\\
+		p(w_{d,n} \mid z_{d,n}^k = 1, z_{-(d,n)}, \bm{w_{-(d,n)}}, \eta) &= \frac{\lambda_{w_{d,n}} + C_{k,-(d,n)}^{w_{d,n}}}{\sum_{v=1}^V\left(\lambda_v + C_{k,-(d,n)}^{v}\right)} \label{eq_gibbs_cond_w}
+\end{align}
+
+
+where \(N_{d,-n}^k\) is the number of times topic \(k\) was assigned in document \(d\) excluding word \(w_{d,n}\), and \(C_{k,-(d,n)}^{w_{d,n}}\) is the number of time the word \(w_{d,n}\) of vocabulary V is assigned to topic k in all documents, exclulding current word \(w_{d,n}\).
+
+The full conditional distribution in equation~\eqref{eq_gibbs_z} can be then sampled using equations~\eqref{eq_gibbs_cond_w} and \eqref{eq_gibbs_cond_z}:
+
+\begin{align}
+	p(z_{d,n} \mid z_{-(d,n)}, \bm{w}, \alpha, \eta) &= \frac{\alpha_k + N_{d,-n}^k}{\sum_{j=1}^K \left(\alpha_j + N_{d,-n}^j\right)}\frac{\lambda_{w_{d,n}} + C_{k,-(d,n)}^{w_{d,n}}}{\sum_{v=1}^V\left(\lambda_v + C_{k,-(d,n)}^{v}\right)}
+\end{align}
+which allows to sample from the inferred posterior distribution for Bayesian inferance.
+
 
 
 \newpage
