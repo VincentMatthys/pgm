@@ -174,10 +174,6 @@ In the EM-algorithm, this ELBO is exactly equal to the log-likelihood for a dist
 		                                                   & = \prod_{d=1}^M q(\theta_d \mid \gamma_d) \prod_{n=1}^N q(z_{d,n} \mid \phi_{d,n})\notag \\
 		                                                   & = \prod_{d=1}^M q(\theta_d \mid \gamma_d) \prod_{n=1}^N q(z_{d,n} \mid \phi_{d,n})\notag
 	\end{align}
-	% \begin{align}
-	% 	q(\theta_d \mid \gamma_d)  & = \gamma \notag \\
-	% 	q(z_{d,n} \mid \phi_{d,n}) & = \prod_{k=1}^K \phi_{d,n}^k  \notag
-	% \end{align}
 \end{multicols}
 
 The ELBO connects the variational distribution \(q(\bm{\theta}, \bm{z} \mid \bm{\phi}, \bm{\gamma})\) to the posterior distribution \(p(\bm{\theta}, \bm{z}, \bm{w} \mid \alpha, \beta)\) through the KL-divergence as shown in equation~\eqref{eq_kl}:
@@ -277,8 +273,9 @@ Due to the sparsity of large corpora, if a document in the test corpus does cont
 
 
 \subsection{Gibbs sampling}
+%collapsed
 
-Using Bayesian rule and Markov's blanckets:
+Another way to infer the posterior distribution is to use Gibbs sampling. In the approach, the smoothed model in figure~\ref{fig_lda_smooth} is used. Calling \(w_{-(d,n)}\) and  \(z_{-(d,n)}\) respectively all the words and all the topics except the word \(w_{d,n}\) and the topic \(z_{d,n}\), the following equation can be deduced from Bayesian rule and Markov's blankets:
 
 \begin{align}
 	p(z_{d,n} \mid z_{-(d,n)}, \bm{w}, \alpha, \eta) &= p(z_{d,n} \mid z_{-(d,n)}, \bm{w_{-(d,n)}}, \alpha, \eta) p(w_{d,n} \mid z_{d,n}, z_{-(d,n)}, \bm{w_{-(d,n)}}, \alpha, \eta) \notag\\
@@ -308,7 +305,7 @@ The full conditional distribution in equation~\eqref{eq_gibbs_z} can be then sam
 \begin{align}
 	p(z_{d,n} \mid z_{-(d,n)}, \bm{w}, \alpha, \eta) &= \frac{\alpha_k + N_{d,-n}^k}{\sum_{j=1}^K \left(\alpha_j + N_{d,-n}^j\right)}\frac{\lambda_{w_{d,n}} + C_{k,-(d,n)}^{w_{d,n}}}{\sum_{v=1}^V\left(\lambda_v + C_{k,-(d,n)}^{v}\right)}
 \end{align}
-which allows to sample from the inferred posterior distribution for Bayesian inferance.
+which allows to sample from the inferred posterior distribution for Bayesian inference.
 
 
 
