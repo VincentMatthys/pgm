@@ -21,7 +21,7 @@
 
     Quentin LEROY, Vincent MATTHYS, Bastien PONCHON\\
     \{qleroy,vmatthys,bponchon\}@ens-paris-saclay.fr
-
+    
 	\rule{5cm}{0.5pt}
 
 	\vspace{1cm}
@@ -32,7 +32,7 @@
 
 Latent Dirichlet Allocation is a generative probabilistic model, presentend in~\cite{lda_2003}, for corpora of text documents or other collections of discrete data. We will use the language of text in this review.
 
-% It includes two level of latent variables: the so-called topics $\mathbf{z}$ at word-level (drawn one for each word) and the topic mixtures $\theta$ at document-level (drawn once for each document). Observed variables are the words $w$. The parameters of the model are of two kinds: $\alpha$ that governs the distributions of the topic mixtures $\theta_d$ ($d$ indexes the documents) through a Dirichlet distribution and $\beta$ that governs the distributions of words $w_n$ conditioned on a topic $z_n$ ($n$ indexes the words) through a multinomial distribution.
+% It includes two level of latent variables: the so-called topics $\mathbf{z}$ at word-level (drawn one for each word) and the topic mixtures $\theta$ at document-level (drawn once for each document). Observed variables are the words $w$. The parameters of the model are of two kinds: $\alpha$ that governs the distributions of the topic mixtures $\theta_d$ ($d$ indexes the documents) through a Dirichlet distribution and $\beta$ that governs the distributions of words $w_n$ conditioned on a topic $z_n$ ($n$ indexes the words) through a multinomial distribution. 
 
 \begin{multicols}{2}
 \begin{figure}[H]
@@ -88,7 +88,7 @@ A document is assumed to be a \textit{bag of words} that is to say that the orde
 $$p(\mathbf{w}, \mathbf{z})=\int \Big(\prod_{n=1}^N p(z_n|\theta)p(w_n|z_n)\Big)p(\theta)d\theta$$
 % LDA makes use of the exchangeability of the words and topics within documents and this representation of the joint distribution over words and topics. Moreover it adds a Dirichlet prior over $\theta$ and model the conditional distributions $p(w_n|z_n)$ as multinomials parameterized by $\beta$ as the graphical models shows in Figure~\ref{fig_lda_graph} as well as the following N-word document generation procedure makes clear.
 
-Latent variable models usually take the advantage of the simplicity and flexibility of introducing unobserved variable to cut modeling into subproblems. For example Gaussian Mixture Models introduce a \textit{soft-assignment} variable that permit to group observed variables and model according to the group. In the LDA model at the word-level the topic latent variable $z$ reflects the intuitive idea that words are drawn according to a fix number of different discrete processes, the number of topics. The topic mixture $\theta$ sampled once per document is another latent variable that governs the distribution over topics for one document, the topic mixture at document-level favors certain topics over other.
+Latent variable models usually take the advantage of the simplicity and flexibility of introducing unobserved variable to cut modeling into subproblems. For example Gaussian Mixture Models introduce a \textit{soft-assignment} variable that permit to group observed variables and model according to the group. In the LDA model at the word-level the topic latent variable $z$ reflects the intuitive idea that words are drawn according to a fix number of different discrete processes, the number of topics. The topic mixture $\theta$ sampled once per document is another latent variable that governs the distribution over topics for one document, the topic mixture at document-level favors certain topics over other. 
 
 
 \section{Mean-field variational inference}
@@ -145,21 +145,21 @@ We wish to approximate the intractable $p(\theta, \bm{z} \mid \bm{w}, \alpha, \b
 and $\gamma$ that are coupled so are solved with an iterative fixed point algorithm. It leads to the following E-step:
 
 \begin{equation*}
-(\gamma_d, \phi_d) = \operatorname{arg}\max_{(\bm{\gamma}, \bm{\phi})} \mathbb{E}_{q}\left[\log p(\bm{\theta},\bm{z}, \bm{w}_d \mid \bm{\alpha}, \bm{\beta})\right] - \mathbb{E}_{q}\left[\log q(\bm{\theta}, \bm{z} \mid \gamma, \phi)\right]              \tag{variational E-step}
+(\gamma_d, \phi_d) = \operatorname{arg}\max_{(\bm{\gamma}, \bm{\phi})} \mathbb{E}_{q}\left[\log p(\bm{\theta},\bm{z}, \bm{w}_d \mid \bm{\alpha}, \bm{\beta})\right] - \mathbb{E}_{q}\left[\log q(\bm{\theta}, \bm{z} \mid \gamma, \phi)\right]              \tag{variational E-step}    
 \end{equation*}
 
 \section{Parameters estimation}
-
-%  Before being able to do inference on new documents, we have to train the model on our corpus of documents, by finding the parameters $\alpha$ and $\beta$ that maximize the marginal log likelihood of the data $\sum_{d=1}^M log(p(\bm{w}_d|\alpha, \beta)$. But as stated above we have a lower bound on this likelihood, depending on $\alpha$ and $\beta$ and on (approximate) variational distributions of parameters $\gamma_d$ and $\phi_d$ (for each document $\bm{w}_d$). We can therefore use a variational EM algorithm to estimate $\alpha$ and $\beta$.
+ 
+ To do inference on new documents, we have to train the model on our corpus of documents, by finding the parameters $\alpha$ and $\beta$ that maximize the marginal log likelihood of the data $\sum_{d=1}^M log(p(\bm{w}_d|\alpha, \beta)$. But as stated above we have a lower bound on this likelihood, depending on $\alpha$ and $\beta$ and on variational distributions of parameters $\gamma_d$ and $\phi_d$ (for each document $\bm{w}_d$). We can therefore use a variational EM algorithm to estimate $\alpha$ and $\beta$, summing the lower bounds of log-likelihood in equation~\eqref{eq_llh} for each document.
  \begin{enumerate}
      \item In the E-step we maximize our lower bound with regard to $\gamma_d$ and $\phi_d$ for each $d\in [1, D]$ as presented in the \textit{variational-inference} section~\ref{sec:inference}.
      \item In the M-step, we maximize the resulting lower bound with respect to $\alpha$ and $\beta$, for which we have a closed form depending on the $\gamma_d$ and $\phi_d$.
  \end{enumerate}
-
- Considering the entire set of documents \(\mathbb{D} = (\bm{w_1}, \dots, \bm{w_M})\), with the hypothesis of exchangeability of documents, the likelihood~\eqref{eq_llh} can be summed for each document, leading to the following M-step for the document \(\bm{w_d}\):
-
+ 
+%  Considering the entire set of documents \(\mathbb{D} = (\bm{w_1}, \dots, \bm{w_M})\), with the hypothesis of exchangeability of documents, the likelihood~\eqref{eq_llh} can be summed for each document, leading to the following M-step for the document \(\bm{w_d}\):
+ 
  \begin{equation}
-	(\bm{\alpha}, \bm{\beta})^{(t+1)} = \operatorname{arg}\min_{(\bm{\alpha}, \bm{\beta})} \sum_{d=1}^M\left(\mathbb{E}_{q}\left[\log p(\bm{\theta},\bm{z}, \bm{w}_d \mid \bm{\alpha}, \bm{\beta})\right] - \mathbb{E}_{q}\left[\log q(\bm{\theta}, \bm{z} \mid \gamma, \phi)\right]\right)          \tag{M-step}
+	(\bm{\alpha}, \bm{\beta})^{(t+1)} = \operatorname{arg}\min_{(\bm{\alpha}, \bm{\beta})} \sum_{d=1}^M\left(\mathbb{E}_{q}\left[\log p(\bm{\theta},\bm{z}, \bm{w}_d \mid \bm{\alpha}, \bm{\beta})\right] - \mathbb{E}_{q}\left[\log q(\bm{\theta}, \bm{z} \mid \gamma, \phi)\right]\right)          \tag{M-step} 
 \end{equation}
 
 
@@ -277,3 +277,4 @@ which allows to sample from the inferred posterior distribution for Bayesian inf
 
 
 \end{document}
+
